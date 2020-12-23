@@ -1,9 +1,12 @@
 <template>
     <div class="heatmap-editor">
         <div>editor</div>
-        <v-btn depressed @click="printContributionHeatmap">
-            print
-        </v-btn>
+        cursor: {{cursor}}
+<!--        rows: {{heatmap.rows}} <br>-->
+<!--        columns: {{heatmap.cols}}-->
+<!--        <v-btn depressed @click="testName">-->
+<!--            test-->
+<!--        </v-btn>-->
         <div class="shortcut-box">
             <div class="shortcut-title">Keyboard Shortcuts</div>
             <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">C</span> for a new column </div>
@@ -22,10 +25,32 @@
         <div class="format-box"></div>
         <div class="editor">
             <div id="editor-grid">
-                <div style="grid-row: 1; grid-column: 1">Your table</div>
-                <div style="grid-row: 1; grid-column: 2" class="heatmap-column">banana</div>
-                <div style="grid-row: 2; grid-column: 1" class="heatmap-row">canine</div>
-                <div style="grid-row: 3; grid-column: 1" class="heatmap-row">cookin</div>
+                <div v-for="(col, index) in heatmap.cols" :key="index" class="heatmap-column"
+                     :class="'grid-c'+(index+1)+'r0'" v-bind:style="{ gridColumn: (index+2)}" >
+                    <div  class="heatmap-column-input">
+                    <v-text-field
+                            color="var(--theme-deep-red)"
+                            :value="heatmap.cols[index]"
+                            dense
+                            hide-details
+                            v-model="heatmap.cols[index]"
+                            :ref="'col'+(index+1)"
+                            @focus="$event.target.select()"
+                    ></v-text-field>
+                    </div>
+                </div>
+                <div v-for="(row, index) in heatmap.rows" :key="index" class="heatmap-row"
+                     :class="'grid-c0r'+(index+1)" v-bind:style="{ gridRow: (index+2)}">
+                    <v-text-field
+                            color="var(--theme-deep-red)"
+                            :value="heatmap.rows[index]"
+                            dense
+                            hide-details
+                            v-model="heatmap.rows[index]"
+                            :ref="'row'+(index+1)"
+                            @focus="$event.target.select()"
+                    ></v-text-field>
+                </div>
                 <div class="gridbars"></div>
                 <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 2" class="grid-el">
                   <div>doom</div>
@@ -46,10 +71,11 @@
     export default {
         name: "HeatmapEditor",
         data: () => ({
-            heatmap: {cols: ['apple', 'pear'],
-                rows: ['writing', 'experiments']},
+            heatmap: {cols: ['E. X. Ample', 'T. Esting','R. E. Viewer'],
+                rows: ['manuscript', 'experiments','feedback']},
             heatmapEl: null,
-            keysDown: {}
+            keysDown: {},
+            cursor: {row:2, col:2}
         }),
         watch: {
             heatmap: {
@@ -67,41 +93,12 @@
                 this.heatmapEl.style.gridTemplateRows = '1f' + ' auto'.repeat(this.heatmap.cols.length)
                 this.heatmapEl.style.gridTemplateColumns = '1f' + ' auto'.repeat(this.heatmap.rows.length);
                 // this.heatmap.style.gridTemplateRows = ;
-                this.drawColLabels();
-                this.drawRowLabels();
                 this.drawContents();
                 this.drawBorder();
-
-
+                this.drawCursor()
             },
 
-            drawColLabels() {
-                // remove old labels
-                document.querySelectorAll('.heatmap-column').forEach(e => e.remove());
-                // draw newlabels
-                for (const [i, row] of this.heatmap.cols.entries()) {
-                    let col_label = document.createElement('div');
-                    col_label.innerHTML = row;
-                    col_label.classList.add("heatmap-column");
-                    col_label.style.gridColumn = i + 2;
-                    col_label.style.gridRow = 1;
-                    this.heatmapEl.appendChild(col_label)
-                }
-            },
 
-            drawRowLabels() {
-                // remove old labels
-                document.querySelectorAll('.heatmap-row').forEach(e => e.remove());
-                // draw newlabels
-                for (const [i, row] of this.heatmap.rows.entries()) {
-                    let col_label = document.createElement('div');
-                    col_label.innerHTML = row;
-                    col_label.classList.add("heatmap-row");
-                    col_label.style.gridColumn = 1;
-                    col_label.style.gridRow = i + 2;
-                    this.heatmapEl.appendChild(col_label)
-                }
-            },
 
             drawContents() {
                 // remove the old grid elements
@@ -111,6 +108,7 @@
                     for (let j = 0; j < this.heatmap.rows.length; j++) {
                         let grid_element = document.createElement('div');
                         grid_element.classList.add("grid-el");
+                        grid_element.classList.add(`grid-c${i+1}r${j+1}`);
                         grid_element.innerHTML = i +' and ' +  j;
                         grid_element.style.gridColumn = i + 2;
                         grid_element.style.gridRow = j + 2;
@@ -130,22 +128,117 @@
                 console.log('Clicked on ' + col + '  and row ' + row)
             },
 
+            // attempt to move the 'cursor'
+            moveCurrentSquare(directionVal) {
+                console.log('moving cursor' + directionVal)
+                if (directionVal === 1) { // right
+                    if (this.cursor.col < this.heatmap.cols.length) {
+                        this.cursor.col++;
+                    }
+                } else if (directionVal === 2) {// left
+                    if (this.cursor.row === 0 && this.cursor.col > 1) { // we are in header row, so we can only go to 1
+                        this.cursor.col--;
+                    } else if (this.cursor.row > 0 && this.cursor.col > 0 ) { // we cant go further than 0
+                        this.cursor.col--;
+                    }
+                } else if (directionVal === 3) {// up
+                    if (this.cursor.col === 0 && this.cursor.row > 1) { // we are in row labels, so we can only go to 1
+                        this.cursor.row--;
+                    } else if (this.cursor.col > 0 &&this.cursor.row > 0 ) { // we cant go further than 0
+                        this.cursor.row--;
+                    }
+                } else if (directionVal === 4) {// down
+                    if (this.cursor.row < this.heatmap.rows.length) {
+                        this.cursor.row++;
+                    }
+                }
+                this.drawCursor()
+            },
+
+            drawCursor() {
+                // first remove the cursor class from the previously focussed element
+                const old_focus = document.querySelectorAll(".cursor");
+                [].forEach.call(old_focus, (el) => { el.classList.remove("cursor") });
+
+                // and then add it to the new one!
+                let focusedEl = document.querySelector('.grid-c' + this.cursor.col + 'r' + this.cursor.row)
+                focusedEl.classList.add("cursor");
+            },
+
             addRow(name) {
-                this.heatmap.rows.push(name)
+                this.heatmap.rows.push(name);
+                // make sure we automatically select the text box to enter name
+                this.$nextTick(() => {
+                    // focus on the last text input element (which is the one we just added!)
+                    this.$refs['row'+this.heatmap.rows.length][0].focus();
+                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
+                });
             },
 
             addColumn(name) {
-                this.heatmap.cols.push(name)
+                this.heatmap.cols.push(name);
+                // make sure we automatically select the text box to enter name
+                this.$nextTick(() => {
+                    // focus on the last text input element (which is the one we just added!)
+                    this.$refs['col' + this.heatmap.cols.length][0].focus();
+                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
+                });
+            },
+
+            // remove a row based on the current value of currentSquare
+            removeRow() {
+                if (this.cursor.row !== 0){  // we cannot remove the headerQQ
+                    if (this.heatmap.rows.length > 1) { // cannot remove if we only have one left
+                        console.log('removing row nr: ' + this.cursor.row);
+                        this.heatmap.rows.splice(this.cursor.row - 1, 1);
+                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
+                    }
+                }
+            },
+
+            // remove a column based on the current value of currentSquare
+            removeColumn() {
+                if (this.cursor.col !== 0){  // we cannot remove the header
+                    if (this.heatmap.cols.length > 1) { // cannot remove if we only have one left
+                        console.log('removing column nr: ' + this.cursor.col);
+                        this.heatmap.cols.splice(this.cursor.col - 1, 1);
+                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
+                    }
+                }
             },
 
             handleKeyPress(event) {
                 this.keysDown[event.key] = true;  // we store key's last state (true=pressed)
-                console.log(event);
+                //console.log(event);
 
                 if (this.keysDown["Shift"] && (this.keysDown["C"] || this.keysDown["c"])) {
-                    this.addColumn('empty')
+                    this.addColumn('empty');
+                    event.preventDefault();  // prevent typing 'c'
                 } else if (this.keysDown["Shift"] && (this.keysDown["R"] || this.keysDown["r"])) {
-                    this.addRow('empty')
+                    this.addRow('empty');
+                    event.preventDefault();  // prevent typing 'r'
+                } else if (this.keysDown["Shift"] && (this.keysDown["Q"] || this.keysDown["q"])) {
+                    this.removeRow();
+                    event.preventDefault();  // prevent typing 'q'
+                } else if (this.keysDown["Shift"] && (this.keysDown["W"] || this.keysDown["w"])) {
+                    this.removeColumn();
+                    event.preventDefault();  // prevent typing 'W'
+                } else if (this.keysDown["Shift"] && this.keysDown['ArrowRight']) {
+                    console.log('WIP')
+                } else if (this.keysDown["Shift"] && this.keysDown['ArrowLeft']) {
+                    console.log('WIP')
+                } else if (this.keysDown["Shift"] && this.keysDown['ArrowUp']) {
+                    console.log('WIP')
+                } else if (this.keysDown["Shift"] && this.keysDown['ArrowDown']) {
+                    console.log('WIP')
+                } else if (this.keysDown['ArrowRight']) {
+                    this.moveCurrentSquare(1);
+                } else if (this.keysDown['ArrowLeft']) {
+                    this.moveCurrentSquare(2);
+                } else if (this.keysDown['ArrowUp']) {
+                    this.moveCurrentSquare(3);
+                } else if (this.keysDown['ArrowDown']) {
+                    this.moveCurrentSquare(4);
                 }
             },
 
@@ -197,6 +290,10 @@
         padding-bottom: 100%;
     }
 
+    .grid-el.cursor {
+        background-color: var(--theme-soft-pink);
+    }
+
     .gridbars {
         background-color: rgba(0,0,0,0.9);
         border-radius: 5px;
@@ -208,13 +305,32 @@
         align-self: center;
         justify-self: end;
         margin-right: 1rem;
+        grid-column: 0;
+    }
+
+    .heatmap-row.cursor {
+        background-color: var(--theme-soft-pink);
     }
 
     .heatmap-column {
         align-self: end;
         justify-self: center;
-        transform: rotate(-90deg);
-        /*margin-bottom: 1rem;*/
+
+        grid-row: 0;
+        position: relative;
+    }
+
+    .heatmap-column-input {
+        position: absolute;
+        bottom: 0px;
+        left: -5px;
+        transform-origin: center left;
+        transform: rotate(-70deg);
+        width: 100px;
+    }
+
+    .cursor .heatmap-column-input  {
+        background-color: var(--theme-soft-pink);
     }
 
     .shortcut-box {
