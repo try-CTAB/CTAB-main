@@ -23,5 +23,13 @@ export default {
     --theme-oxblood: #5D001E;
     --theme-brightpink: #EE4C7C;
     --theme-deep-red: #9A1750;
+    --keyboard-white: white
+  }
+
+  ::selection {
+    background: var(--theme-soft-pink); /* WebKit/Blink Browsers */
+  }
+  ::-moz-selection {
+    background: var(--theme-soft-pink); /* Gecko Browsers */
   }
 </style>
