@@ -1,73 +1,100 @@
 <template>
     <div class="heatmap-editor">
         <div>editor</div>
-        cursor: {{cursor}} <br>
-        rows: {{heatmap.rows}} <br>
-        columns: {{heatmap.cols}} <br>
-        contributions: {{heatmap.contributions}}
+<!--        cursor: {{cursor}} <br>-->
+<!--        rows: {{heatmap.rows}} <br>-->
+<!--        columns: {{heatmap.cols}} <br>-->
+<!--        contributions: {{heatmap.contributions}}-->
 <!--        <v-btn depressed @click="testName">-->
 <!--            test-->
 <!--        </v-btn>-->
-        <div class="shortcut-box">
-            <div class="shortcut-title">Keyboard Shortcuts</div>
-            <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">C</span> for a new column </div>
-            <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">R</span> for a new row </div>
-            <div class="shortcut-hint"> Use <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span> To navigate </div>
-            <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">Q</span> to delete a row</div>
-            <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">W</span> to delete a column</div>
-            <div class="shortcut-hint"> Use <span class="keyboard-key">Shift </span>+<span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
-                <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span>  to move rows and columns </div>
-            <div class="shortcut-hint">Use <span class="keyboard-key">+</span>,<span class="keyboard-key">-</span>
-            or press<span class="keyboard-key">1</span><span class="keyboard-key">2</span><span class="keyboard-key">3</span> to set contribution degree</div>
-        </div>
         <div class="format-box"></div>
-        <div class="editor">
-            <div id="editor-grid">
-                <div v-for="(col, index) in heatmap.cols" :key="col.id" class="heatmap-column"
-                     :class="'grid-c'+(index+1)+'r0'" v-bind:style="{ gridColumn: (index+2)}" >
-                    <div  class="heatmap-column-input">
-                    <v-text-field
-                            color="var(--theme-deep-red)"
-                            :value="heatmap.cols[index]"
-                            dense
-                            hide-details
-                            v-model="heatmap.cols[index]"
-                            :ref="'col'+(index+1)"
-                            @focus="$event.target.select()"
-                    ></v-text-field>
+        <div class="editor-flexbox">
+            <div class="shortcut-box">
+                <div class="shortcut-title">Keyboard Shortcuts</div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">C</span> for a new column </div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">R</span> for a new row </div>
+                <div class="shortcut-hint"> Use <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span> To navigate </div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">Q</span> to delete a row</div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">W</span> to delete a column</div>
+                <div class="shortcut-hint"> Use <span class="keyboard-key">Shift </span>+<span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
+                    <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span>  to move rows and columns </div>
+                <div class="shortcut-hint">Use <span class="keyboard-key">+</span>,<span class="keyboard-key">-</span>
+                or press<span class="keyboard-key">1</span><span class="keyboard-key">2</span><span class="keyboard-key">3</span> to set contribution degree</div>
+            </div>
+            <div class="heatmap-html-element">
+                <div id="editor-grid">
+                    <div class="heatmap-meta">CHM V0.1</div>
+                    <div v-for="(col, index) in heatmap.cols" :key="col.id" class="heatmap-column"
+                         :class="'grid-c'+(index+1)+'r0'" v-bind:style="{ gridColumn: (index+2)}" >
+                        <div  class="heatmap-column-input">
+                        <v-text-field
+                                color="var(--theme-deep-red)"
+                                :value="heatmap.cols[index]"
+                                dense
+                                hide-details
+                                v-model="heatmap.cols[index]"
+                                :ref="'col'+(index+1)"
+                                @focus="$event.target.select()"
+                        ></v-text-field>
+                        </div>
                     </div>
+                    <div v-for="(row, index) in heatmap.rows" :key="row.id" class="heatmap-row"
+                         :class="'grid-c0r'+(index+1)" v-bind:style="{ gridRow: (index+2)}">
+                        <v-text-field
+                                color="var(--theme-deep-red)"
+                                :value="heatmap.rows[index]"
+                                dense
+                                hide-details
+                                v-model="heatmap.rows[index]"
+                                :ref="'row'+(index+1)"
+                                @focus="$event.target.select()"
+                        ></v-text-field>
+                    </div>
+                    <div class="gridbars"></div>
+                    <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 2" class="grid-el">
+                      <div>doom</div>
+                    </v-responsive>
+                    <v-responsive :aspect-ratio="1" style="grid-row: 3; grid-column: 3" class="grid-el">
+                        <div >final</div>
+                    </v-responsive>
+                    <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 3" class="grid-el">
+                        <div>enigma</div>
+                    </v-responsive>
                 </div>
-                <div v-for="(row, index) in heatmap.rows" :key="row.id" class="heatmap-row"
-                     :class="'grid-c0r'+(index+1)" v-bind:style="{ gridRow: (index+2)}">
-                    <v-text-field
-                            color="var(--theme-deep-red)"
-                            :value="heatmap.rows[index]"
-                            dense
-                            hide-details
-                            v-model="heatmap.rows[index]"
-                            :ref="'row'+(index+1)"
-                            @focus="$event.target.select()"
-                    ></v-text-field>
-                </div>
-                <div class="gridbars"></div>
-                <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 2" class="grid-el">
-                  <div>doom</div>
-                </v-responsive>
-                <v-responsive :aspect-ratio="1" style="grid-row: 3; grid-column: 3" class="grid-el">
-                    <div >final</div>
-                </v-responsive>
-                <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 3" class="grid-el">
-                    <div>enigma</div>
-                </v-responsive>
             </div>
         </div>
-        <div class="export-options">
-            <div class="export-header">export</div>
+        <div class="export-box">
+            <div class="export-header">Export options</div>
+            <div class="export-options">
+                <div class="export-item">
+                    Export as plaintext
+                </div>
+                <div class="export-item">
+                    Export as editable link
+                </div>
+                <div class="export-item-spacer">OR</div>
+                <div class="export-item">
+                    Export as LaTeX table
+                </div>
+                <div class="export-item">
+                    Export as PDF
+                </div>
+                <div class="export-item">
+                    Export as HTML
+                </div>
+                <div class="export-item-spacer">OR</div>
+                <div class="export-item">
+                    Export as PNG
+                </div>
+                <div class="halfbackdrop"></div>
+
+            </div>
         </div>
     </div>
 </template>
@@ -97,8 +124,8 @@
             drawHeatmap() {
                 console.log('Re-drawing the heatmap');
                 // fix the number of rows and cols
-                this.heatmapEl.style.gridTemplateRows = '1f' + ' auto'.repeat(this.heatmap.cols.length);
-                this.heatmapEl.style.gridTemplateColumns = '1f' + ' auto'.repeat(this.heatmap.rows.length);
+                this.heatmapEl.style.gridTemplateRows = '1fr' + ' var(--gridsize)'.repeat(this.heatmap.rows.length);
+                this.heatmapEl.style.gridTemplateColumns = '1fr' + ' var(--gridsize)'.repeat(this.heatmap.cols.length);
                 // this.heatmap.style.gridTemplateRows = ;
                 this.drawContents();
                 this.drawBorder();
@@ -180,7 +207,7 @@
                 this.heatmap.rows.splice( this.cursor.row, 0, name);
                 // update the contributions arrays (add a zero to each array in .contributions at appropriate index)
                 for (let singleContribution of this.heatmap.contributions) {
-                    singleContribution.splice(this.cursor.row , 0, 0)
+                    singleContribution.splice(this.cursor.row , 0, this.metadata.lowerDegreeLimit)
                 }
                 // make sure we automatically select the text box to enter name
                 this.$nextTick(() => {
@@ -193,7 +220,7 @@
             addColumn(name) {
                 this.heatmap.cols.splice( this.cursor.col, 0, name);
                 // update the contributions array (in this case simply add an array of zeros)
-                this.heatmap.contributions.splice(this.cursor.col, 0, Array(this.heatmap.rows.length).fill(0));
+                this.heatmap.contributions.splice(this.cursor.col, 0, Array(this.heatmap.rows.length).fill(this.metadata.lowerDegreeLimit));
                 // make sure we automatically select the text box to enter name
                 this.$nextTick(() => {
                     // focus on the last text input element (which is the one we just added!)
@@ -310,7 +337,7 @@
 
             handleKeyPress(event) {
                 this.keysDown[event.key] = true;  // we store key's last state (true=pressed)
-                console.log(event);
+                //console.log(event);
                 if (this.keysDown["Shift"] && (this.keysDown["C"] || this.keysDown["c"])) {
                     this.addColumn('undefined');
                     event.preventDefault();  // prevent typing 'c'
@@ -391,33 +418,40 @@
         background-color: var(--theme-white);
         width: 100vw;
         height: 100vh;
-        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .heatmap-html-element{
+       display: flex;
+        justify-content: center;
+        flex-grow: 1
     }
 
     #editor-grid {
         display: grid;
-        grid-template-rows: 1fr repeat(2, auto);
-        grid-template-columns: 1fr repeat(2, auto);
-        margin: 4rem;
+        grid-template-rows: 1f repeat(2, var(--gridsize));
+        grid-template-columns: 1fr repeat(2, var(--gridsize));
+        margin: 1rem;
+        --gridsize: 40px;
+
+    }
+
+    .heatmap-meta {
+        color: transparent;
+        overflow: hidden;
     }
 
     .grid-el{
         background-color: floralwhite;
-        width: 30px;
-        margin: 2px;
+        width: 90%;
+        height: 90%;
+        margin: 10px;
         font-size: 8px;
         color: transparent;  /*hide text but keep it there for selection*/
 
         justify-self: center;
         align-self: center;
-    }
-
-    .grid-el::before {
-        content: "";
-        display: inline-block;
-        width: 1px;
-        height: 0;
-        padding-bottom: 100%;
     }
 
     .grid-el.cursor {
@@ -441,6 +475,13 @@
         /*border-radius: 5px;*/
         grid-row-start: 2;
         grid-column-start: 2;
+    }
+
+    .editor-flexbox {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-grow: 1
     }
 
     .heatmap-row {
@@ -497,6 +538,54 @@
         margin: 0px 3px;
         filter: drop-shadow(0 3.5px 0 var(--theme-oxblood));
     }
+
+    .export-box{
+        width: 100%;
+        position: relative;
+    }
+
+    .export-header {
+        font-size: 1.3rem;
+        text-align: center;
+        font-weight: bold;
+        color: var(--theme-brightpink);
+    }
+
+    .export-options {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .export-item {
+        text-align: center;
+        margin: 2rem;
+        padding: 2rem;
+        width: 9rem;
+        height: 7rem;
+        color: rgba(0,0,0,0.4);
+
+        background-color: #D8D8D8	;
+        border-radius: 10px;
+        z-index: 1;
+    }
+
+    .export-item-spacer {
+        margin: 1rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: var(--theme-brightpink);
+        z-index: 1;
+    }
+
+    /*.halfbackdrop {*/
+    /*    position: absolute;*/
+    /*    width: 100%;*/
+    /*    background-color: rgba(0,0,0,0.3);*/
+    /*    height: 50%;*/
+    /*    bottom: 0;*/
+    /*    z-index: 0;*/
+    /*}*/
 
 </style>
 
