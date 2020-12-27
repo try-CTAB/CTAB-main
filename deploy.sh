@@ -2,7 +2,13 @@
 
 # I run this from git bash on windows but it should work just fine on any bash terminal on linux
 
-cd ../dist
+# abort on errors
+set -e
+
+# build
+npm run build
+
+cd dist
 echo '>>> Making git...'
 git init
 echo '>>> Adding all files to git...'

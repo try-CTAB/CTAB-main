@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import HeatmapEditor from "./components/HeatmapEditor";
+import HeatmapEditor from "../../components/HeatmapEditor";
 
 export default {
   name: 'App',
