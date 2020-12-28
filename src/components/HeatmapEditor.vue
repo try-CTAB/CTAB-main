@@ -1,6 +1,5 @@
 <template>
     <div class="heatmap-editor">
-        <div>editor</div>
 <!--        cursor: {{cursor}} <br>-->
 <!--        rows: {{heatmap.rows}} <br>-->
 <!--        columns: {{heatmap.cols}} <br>-->
@@ -8,7 +7,10 @@
 <!--        <v-btn depressed @click="testName">-->
 <!--            test-->
 <!--        </v-btn>-->
-        <div class="format-box"></div>
+        <button @click="testCopy">Copy HTML rough</button>
+        <div class="format-box">
+            <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank" style="margin: 1rem; font-size: 1.4rem">Docs</a>
+        </div>
         <div class="editor-flexbox">
             <div class="shortcut-box">
                 <div class="shortcut-title">Keyboard Shortcuts</div>
@@ -46,7 +48,7 @@
                     </div>
                     <div v-for="(row, index) in heatmap.rows" :key="row.id" class="heatmap-row"
                          :class="'grid-c0r'+(index+1)" v-bind:style="{ gridRow: (index+2)}">
-                        <v-text-field
+                        <v-text-field class="shrink"
                                 color="var(--theme-deep-red)"
                                 :value="heatmap.rows[index]"
                                 dense
@@ -72,26 +74,39 @@
         <div class="export-box">
             <div class="export-header">Export options</div>
             <div class="export-options">
-                <div class="export-item">
-                    Export as plaintext
-                </div>
-                <div class="export-item">
-                    Export as editable link
-                </div>
+                <export-card format="raw" :contribution-table="heatmap" :save-option=true>
+                    <template v-slot:header>Raw Format</template>
+                    <template v-slot:quick-summary>Export the {{name}} in the plaintext Raw Format. Markdown compatible.</template>
+                </export-card>
+
+                <export-card format="link" :contribution-table="heatmap">
+                    <template v-slot:header>Editor link</template>
+                    <template v-slot:quick-summary>Export as a sharable link to the editor</template>
+                </export-card>
+
                 <div class="export-item-spacer">OR</div>
-                <div class="export-item">
-                    Export as LaTeX table
-                </div>
-                <div class="export-item">
-                    Export as PDF
-                </div>
-                <div class="export-item">
-                    Export as HTML
-                </div>
+                <export-card :details=true format="LaTeX" :contribution-table="heatmap">
+                    <template v-slot:header>LaTeX table</template>
+                    <template v-slot:quick-summary>Export the {{name}} as a LaTeX table</template>
+                    <template v-slot:details-text>The default export includes the <b>[xcolor, array, graphicx, hhline]</b> packages. If you want a plain LaTeX version, press 'alt export' </template>
+                </export-card>
+                <export-card :notReady=true :contribution-table="heatmap">
+                    <template v-slot:header>PDF</template>
+                    <template v-slot:quick-summary>Export the {{name}} as a PDF object</template>
+                </export-card>
+                <export-card :notReady=true :contribution-table="heatmap">
+                    <template v-slot:header> HTML</template>
+                    <template v-slot:quick-summary>Export as HTML element, complete with styling and JS</template>
+                </export-card>
+                <export-card :notReady=true :contribution-table="heatmap">
+                    <template v-slot:header>Word table</template>
+                    <template v-slot:quick-summary>Export as a table for Microsoft Word</template>
+                </export-card>
                 <div class="export-item-spacer">OR</div>
-                <div class="export-item">
-                    Export as PNG
-                </div>
+                <export-card :notReady=true :contribution-table="heatmap">
+                    <template v-slot:header>PNG</template>
+                    <template v-slot:quick-summary>Export as PNG raster image</template>
+                </export-card>
                 <div class="halfbackdrop"></div>
 
             </div>
@@ -100,17 +115,21 @@
 </template>
 
 <script>
+    import ExportCard from "./ExportCard";
+    // eslint-disable-next-line no-unused-vars
     import { exportPlainText } from "../export.js"
     export default {
         name: "HeatmapEditor",
+        components: {ExportCard},
         data: () => ({
             heatmap: {cols: ['E. X. Ample', 'T. Esting','R. E. Viewer'],
                 rows: ['manuscript', 'experiments','feedback'],
-                contributions: [[1,2,3],[2,3,2],[1,1,2]]},
+                contributions: [[0,1,2],[1,2,1],[0,0,1]]},
             heatmapEl: null,
             keysDown: {},
             cursor: {row:2, col:2},
-            metadata: {lowerDegreeLimit:1, upperDegreeLimit:3}
+            metadata: {lowerDegreeLimit:0, upperDegreeLimit:2},
+            name: 'contribution table'
         }),
         watch: {
             heatmap: {
@@ -371,11 +390,11 @@
                 } else if (this.keysDown['ArrowDown']) {
                     this.moveCurrentSquare(4);
                 } else if (this.keysDown['1']) {
-                    this.setContribution(1)
+                    this.setContribution(0)
                 } else if (this.keysDown['2']) {
-                    this.setContribution(2)
+                    this.setContribution(1)
                 } else if (this.keysDown['3']) {
-                    this.setContribution(3)
+                    this.setContribution(2)
                 } else if (this.keysDown['+'] || this.keysDown[']']) {
                     this.changeContribution(true)
                 } else if (this.keysDown['_'] || this.keysDown['[']) {
@@ -386,6 +405,34 @@
             handleKeyUp(event) {
                 this.keysDown[event.key] = false;  // here is where we reset a key's state when it is released
             },
+
+            testCopy(){
+                const doc = document;
+                const text = doc.getElementById( 'editor-grid' );
+                let range;
+                let selection;
+
+                if( doc.body.createTextRange ) {
+
+                    range = doc.body.createTextRange();
+                    range.moveToElement( text );
+                    range.select();
+
+                } else if ( window.getSelection ) {
+
+                    selection = window.getSelection();
+
+                    range = doc.createRange();
+                    range.selectNodeContents( text );
+
+                    selection.removeAllRanges();
+                    selection.addRange( range );
+
+                }
+
+                document.execCommand( 'copy' );
+                window.getSelection().removeAllRanges();
+            }
         },
         mounted() {
             // initialise a grid from rows + categories
@@ -405,10 +452,10 @@
 
 
             // make sure the heatmap has proper ctrl-c behaviour (the clipboard is formatted correctly)
-            document.getElementById('editor-grid').addEventListener('copy', (e)=>{
-                e.preventDefault();
-                e.clipboardData.setData("Text", exportPlainText(this.heatmap) );
-            });
+            // document.getElementById('editor-grid').addEventListener('copy', (e)=>{
+            //     e.preventDefault();
+            //     e.clipboardData.setData("Text", exportPlainText(this.heatmap) );
+            // });
         }
     }
 </script>
@@ -439,7 +486,7 @@
 
     .heatmap-meta {
         color: transparent;
-        overflow: hidden;
+        display: none;
     }
 
     .grid-el{
@@ -458,15 +505,15 @@
         border: #FFD800 solid 2px;
     }
 
-    .contribution-level-1 {
+    .contribution-level-0 {
         background-color: white;
     }
 
-    .contribution-level-2 {
+    .contribution-level-1 {
         background-color: #A0A0A0;
     }
 
-    .contribution-level-3 {
+    .contribution-level-2 {
         background-color: 	#303030;
     }
 
@@ -539,9 +586,16 @@
         filter: drop-shadow(0 3.5px 0 var(--theme-oxblood));
     }
 
+    /* ensure rows are right aligned*/
+    .heatmap-row .v-text-field input {
+        text-align: right;
+    }
+
     .export-box{
         width: 100%;
         position: relative;
+        display: flex;
+        flex-direction: column;
     }
 
     .export-header {
@@ -555,23 +609,15 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        height: 100%;
     }
 
     .export-item {
-        text-align: center;
-        margin: 2rem;
-        padding: 2rem;
-        width: 9rem;
-        height: 7rem;
-        color: rgba(0,0,0,0.4);
-
-        background-color: #D8D8D8	;
-        border-radius: 10px;
-        z-index: 1;
+        margin: 1rem;
     }
 
     .export-item-spacer {
-        margin: 1rem;
+        margin: 0.5rem;
         font-weight: bold;
         font-size: 1.1rem;
         color: var(--theme-brightpink);
