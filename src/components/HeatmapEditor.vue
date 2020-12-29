@@ -30,7 +30,44 @@
                 or press<span class="keyboard-key">1</span><span class="keyboard-key">2</span><span class="keyboard-key">3</span> to set contribution degree</div>
             </div>
             <div class="heatmap-html-element">
+                <table id="tabley">
+                    <tr>
+                        <th>CTAB V0.1</th>
+                        <td v-for="(col, index) in heatmap.cols" :key="col.id" style="position: relative;" >
+                            <div class="heatmap-column-input-tbl"><v-text-field
+                                    color="var(--theme-deep-red)"
+                                    :value="heatmap.cols[index]"
+                                    dense
+                                    hide-details
+                                    v-model="heatmap.cols[index]"
+                                    :ref="'col'+(index+1)"
+                                    @focus="$event.target.select()"
+                            ></v-text-field></div>
+                        </td>
+                    </tr>
+                    <tr v-for="(row, rowIndex) in heatmap.rows" :key="row.id">
+                        <td class="heatmap-row-tbl"><v-text-field
+                            color="var(--theme-deep-red)"
+                            :value="heatmap.rows[rowIndex]"
+                            dense
+                            hide-details
+                            v-model="heatmap.rows[rowIndex]"
+                            :ref="'row'+(rowIndex+1)"
+                            @focus="$event.target.select()"
+                            ></v-text-field></td>
+                        <td v-for=" (val, colIndex) in heatmap.contributions.map(contribution => contribution[rowIndex])"
+                            :key="val.id"
+                            class="grid-el-tbl"
+                            :class="'contribution-level-'+val + ' grid-c' + (colIndex+1) + 'r' + (rowIndex+1)"
+                            @click="edit_contents(colIndex, rowIndex)">
+                            {{'*'.repeat(val)}}
+                        </td>
+                    </tr>
+                </table>
+
+
                 <div id="editor-grid">
+
                     <div class="heatmap-meta">CHM V0.1</div>
                     <div v-for="(col, index) in heatmap.cols" :key="col.id" class="heatmap-column"
                          :class="'grid-c'+(index+1)+'r0'" v-bind:style="{ gridColumn: (index+2)}" >
@@ -59,15 +96,6 @@
                         ></v-text-field>
                     </div>
                     <div class="gridbars"></div>
-                    <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 2" class="grid-el">
-                      <div>doom</div>
-                    </v-responsive>
-                    <v-responsive :aspect-ratio="1" style="grid-row: 3; grid-column: 3" class="grid-el">
-                        <div >final</div>
-                    </v-responsive>
-                    <v-responsive :aspect-ratio="1" style="grid-row: 2; grid-column: 3" class="grid-el">
-                        <div>enigma</div>
-                    </v-responsive>
                 </div>
             </div>
         </div>
@@ -279,6 +307,9 @@
                     console.log(`Setting contribution of ${this.heatmap.cols[this.cursor.col-1]} in category ${this.heatmap.rows[this.cursor.row-1]} to: ${contributionDegree}`);
                     this.heatmap.contributions[this.cursor.col - 1].splice(this.cursor.row - 1, 1, contributionDegree);
                 }
+                this.$nextTick(() => {
+                    this.drawCursor()
+                });
             },
 
             // change the contribution level at the current cursor location. increases or decreases the value, rather
@@ -350,8 +381,9 @@
                     this.heatmap.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
                     this.heatmap.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
                 }
-
-                this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
+                this.$nextTick(() => {
+                    this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
+                });
             },
 
             handleKeyPress(event) {
@@ -408,7 +440,7 @@
 
             testCopy(){
                 const doc = document;
-                const text = doc.getElementById( 'editor-grid' );
+                const text = doc.getElementById( 'tabley' );
                 let range;
                 let selection;
 
@@ -432,6 +464,11 @@
 
                 document.execCommand( 'copy' );
                 window.getSelection().removeAllRanges();
+            },
+
+            testClicky(i,j) {
+                console.log('i: ' + i + ' and j: ' + j)
+                this.edit_contents(i,j);
             }
         },
         mounted() {
@@ -467,6 +504,7 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
+        --gridsize: 40px;
     }
 
     .heatmap-html-element{
@@ -480,8 +518,6 @@
         grid-template-rows: 1f repeat(2, var(--gridsize));
         grid-template-columns: 1fr repeat(2, var(--gridsize));
         margin: 1rem;
-        --gridsize: 40px;
-
     }
 
     .heatmap-meta {
@@ -501,8 +537,19 @@
         align-self: center;
     }
 
-    .grid-el.cursor {
-        border: #FFD800 solid 2px;
+    table, th, td {border-collapse: collapse; border-spacing: 0}
+
+    .grid-el-tbl {
+        background-color: floralwhite;
+        font-size: 8px;
+        color: transparent;  /*hide text but keep it there for selection*/
+        border: 4px solid black;
+        width: var(--gridsize);
+        height: var(--gridsize);
+    }
+
+    .grid-el.cursor, .grid-el-tbl.cursor{
+        border: #FFD800 solid 5px;
     }
 
     .contribution-level-0 {
@@ -538,6 +585,10 @@
         grid-column: 0;
     }
 
+    .heatmap-row-tbl{
+        padding-right: 0.8rem;
+    }
+
     .heatmap-row.cursor {
         font-weight: bold;
     }
@@ -554,6 +605,15 @@
         position: absolute;
         bottom: 0px;
         left: -5px;
+        transform-origin: center left;
+        transform: rotate(-70deg);
+        width: 100px;
+    }
+
+    .heatmap-column-input-tbl {
+        position: absolute;
+        bottom: 0px;
+        left: 15px;
         transform-origin: center left;
         transform: rotate(-70deg);
         width: 100px;
@@ -587,7 +647,7 @@
     }
 
     /* ensure rows are right aligned*/
-    .heatmap-row .v-text-field input {
+    .heatmap-row .v-text-field input, .heatmap-row-tbl .v-text-field input {
         text-align: right;
     }
 
