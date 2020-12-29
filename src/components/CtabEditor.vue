@@ -1,12 +1,5 @@
 <template>
-    <div class="heatmap-editor">
-<!--        cursor: {{cursor}} <br>-->
-<!--        rows: {{heatmap.rows}} <br>-->
-<!--        columns: {{heatmap.cols}} <br>-->
-<!--        contributions: {{heatmap.contributions}}-->
-<!--        <v-btn depressed @click="testName">-->
-<!--            test-->
-<!--        </v-btn>-->
+    <div class="CTAB-editor">
         <button @click="testCopy">Copy HTML rough</button>
         <div class="format-box">
             <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank" style="margin: 1rem; font-size: 1.4rem">Docs</a>
@@ -28,115 +21,86 @@
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span>  to move rows and columns </div>
                 <div class="shortcut-hint">Use <span class="keyboard-key">+</span>,<span class="keyboard-key">-</span>
                 or press<span class="keyboard-key">1</span><span class="keyboard-key">2</span><span class="keyboard-key">3</span> to set contribution degree</div>
+                <div class="shortcut-hint">Press <span class="keyboard-key">Enter </span> to edit/confirm a label</div>
+                <div class="shortcut-hint">Press <span class="keyboard-key">Shift </span>+<span class="keyboard-key">/</span> to reset the table</div>
             </div>
-            <div class="heatmap-html-element">
-                <table id="tabley">
+            <div class="editor-tbl-container">
+                <table id="editor-tbl">
                     <tr>
-                        <th>CTAB V0.1</th>
-                        <td v-for="(col, index) in heatmap.cols" :key="col.id" style="position: relative;" >
-                            <div class="heatmap-column-input-tbl"><v-text-field
+                        <th class="CTAB-meta">CTAB V{{CTAB.version}}</th>
+                        <td v-for="(col, index) in CTAB.cols" :key="col.id" style="position: relative"
+                            :class="'grid-c' + (index+1) + 'r0'"
+                         >
+                            <div class="CTAB-column-input" ><v-text-field
                                     color="var(--theme-deep-red)"
-                                    :value="heatmap.cols[index]"
+                                    :value="CTAB.cols[index]"
                                     dense
                                     hide-details
-                                    v-model="heatmap.cols[index]"
+                                    v-model="CTAB.cols[index]"
                                     :ref="'col'+(index+1)"
                                     @focus="$event.target.select()"
                             ></v-text-field></div>
                         </td>
                     </tr>
-                    <tr v-for="(row, rowIndex) in heatmap.rows" :key="row.id">
-                        <td class="heatmap-row-tbl"><v-text-field
+                    <tr v-for="(row, rowIndex) in CTAB.rows" :key="row.id">
+                        <td class="CTAB-row" :class="'grid-c0r' + (rowIndex+1)"><v-text-field
                             color="var(--theme-deep-red)"
-                            :value="heatmap.rows[rowIndex]"
+                            :value="CTAB.rows[rowIndex]"
                             dense
                             hide-details
-                            v-model="heatmap.rows[rowIndex]"
+                            v-model="CTAB.rows[rowIndex]"
                             :ref="'row'+(rowIndex+1)"
                             @focus="$event.target.select()"
-                            ></v-text-field></td>
-                        <td v-for=" (val, colIndex) in heatmap.contributions.map(contribution => contribution[rowIndex])"
+
+                            ></v-text-field></td> <!--v-on:keydown.enter="$event.target.blur()"-->
+                        <td v-for=" (val, colIndex) in CTAB.contributions.map(contribution => contribution[rowIndex])"
                             :key="val.id"
-                            class="grid-el-tbl"
+                            class="grid-el"
                             :class="'contribution-level-'+val + ' grid-c' + (colIndex+1) + 'r' + (rowIndex+1)"
                             @click="edit_contents(colIndex, rowIndex)">
                             {{'*'.repeat(val)}}
                         </td>
                     </tr>
                 </table>
-
-
-                <div id="editor-grid">
-
-                    <div class="heatmap-meta">CHM V0.1</div>
-                    <div v-for="(col, index) in heatmap.cols" :key="col.id" class="heatmap-column"
-                         :class="'grid-c'+(index+1)+'r0'" v-bind:style="{ gridColumn: (index+2)}" >
-                        <div  class="heatmap-column-input">
-                        <v-text-field
-                                color="var(--theme-deep-red)"
-                                :value="heatmap.cols[index]"
-                                dense
-                                hide-details
-                                v-model="heatmap.cols[index]"
-                                :ref="'col'+(index+1)"
-                                @focus="$event.target.select()"
-                        ></v-text-field>
-                        </div>
-                    </div>
-                    <div v-for="(row, index) in heatmap.rows" :key="row.id" class="heatmap-row"
-                         :class="'grid-c0r'+(index+1)" v-bind:style="{ gridRow: (index+2)}">
-                        <v-text-field class="shrink"
-                                color="var(--theme-deep-red)"
-                                :value="heatmap.rows[index]"
-                                dense
-                                hide-details
-                                v-model="heatmap.rows[index]"
-                                :ref="'row'+(index+1)"
-                                @focus="$event.target.select()"
-                        ></v-text-field>
-                    </div>
-                    <div class="gridbars"></div>
-                </div>
             </div>
         </div>
         <div class="export-box">
             <div class="export-header">Export options</div>
             <div class="export-options">
-                <export-card format="raw" :contribution-table="heatmap" :save-option=true>
+                <export-card format="raw" :contribution-table="CTAB" :save-option=true>
                     <template v-slot:header>Raw Format</template>
                     <template v-slot:quick-summary>Export the {{name}} in the plaintext Raw Format. Markdown compatible.</template>
                 </export-card>
 
-                <export-card format="link" :contribution-table="heatmap">
+                <export-card format="link" :contribution-table="CTAB">
                     <template v-slot:header>Editor link</template>
                     <template v-slot:quick-summary>Export as a sharable link to the editor</template>
                 </export-card>
 
                 <div class="export-item-spacer">OR</div>
-                <export-card :details=true format="LaTeX" :contribution-table="heatmap">
+                <export-card :details=true format="LaTeX" :contribution-table="CTAB">
                     <template v-slot:header>LaTeX table</template>
                     <template v-slot:quick-summary>Export the {{name}} as a LaTeX table</template>
                     <template v-slot:details-text>The default export includes the <b>[xcolor, array, graphicx, hhline]</b> packages. If you want a plain LaTeX version, press 'alt export' </template>
                 </export-card>
-                <export-card :notReady=true :contribution-table="heatmap">
+                <export-card :notReady=true :contribution-table="CTAB">
                     <template v-slot:header>PDF</template>
                     <template v-slot:quick-summary>Export the {{name}} as a PDF object</template>
                 </export-card>
-                <export-card :notReady=true :contribution-table="heatmap">
+                <export-card :notReady=true :contribution-table="CTAB">
                     <template v-slot:header> HTML</template>
                     <template v-slot:quick-summary>Export as HTML element, complete with styling and JS</template>
                 </export-card>
-                <export-card :notReady=true :contribution-table="heatmap">
+                <export-card :notReady=true :contribution-table="CTAB">
                     <template v-slot:header>Word table</template>
                     <template v-slot:quick-summary>Export as a table for Microsoft Word</template>
                 </export-card>
                 <div class="export-item-spacer">OR</div>
-                <export-card :notReady=true :contribution-table="heatmap">
+                <export-card :notReady=true :contribution-table="CTAB">
                     <template v-slot:header>PNG</template>
                     <template v-slot:quick-summary>Export as PNG raster image</template>
                 </export-card>
-                <div class="halfbackdrop"></div>
-
+                <div class="halfbackdrop"></div> <!--TODO remove or keep?-->
             </div>
         </div>
     </div>
@@ -146,64 +110,32 @@
     import ExportCard from "./ExportCard";
     // eslint-disable-next-line no-unused-vars
     import { exportPlainText } from "../export.js"
+    import { parseEditorQuery, isValidCTAB } from "../parser.js"
     export default {
-        name: "HeatmapEditor",
+        name: "CTAB-editor",
         components: {ExportCard},
         data: () => ({
-            heatmap: {cols: ['E. X. Ample', 'T. Esting','R. E. Viewer'],
+            CTAB: {cols: ['E. X. Ample', 'T. Esting','R. E. Viewer'],
                 rows: ['manuscript', 'experiments','feedback'],
-                contributions: [[0,1,2],[1,2,1],[0,0,1]]},
-            heatmapEl: null,
+                contributions: [[0,1,2],[1,2,1],[0,0,1]],
+                version: '0.1'},
+            tableEl: null,
             keysDown: {},
             cursor: {row:2, col:2},
             metadata: {lowerDegreeLimit:0, upperDegreeLimit:2},
-            name: 'contribution table'
+            name: 'contribution table',
+            focusedInput: null
         }),
-        watch: {
-            heatmap: {
-                handler(){
-                    this.drawHeatmap()
-                },
-                deep: true
-            }
-        },
         methods: {
-            drawHeatmap() {
-                console.log('Re-drawing the heatmap');
-                // fix the number of rows and cols
-                this.heatmapEl.style.gridTemplateRows = '1fr' + ' var(--gridsize)'.repeat(this.heatmap.rows.length);
-                this.heatmapEl.style.gridTemplateColumns = '1fr' + ' var(--gridsize)'.repeat(this.heatmap.cols.length);
-                // this.heatmap.style.gridTemplateRows = ;
-                this.drawContents();
-                this.drawBorder();
+
+            testFocus(index) {
+                console.log('FOcusssing on' + index);
+                this.$refs[ 'col' + (index+1) ][0].focus()
+            },
+
+            drawTable() {
+                console.log('Re-drawing the contribution table');
                 this.drawCursor()
-            },
-
-
-
-            drawContents() {
-                // remove the old grid elements
-                document.querySelectorAll('.grid-el').forEach(e => e.remove());
-                // add new grid elements
-                for (let i = 0; i < this.heatmap.cols.length; i++) {
-                    for (let j = 0; j < this.heatmap.rows.length; j++) {
-                        let grid_element = document.createElement('div');
-                        grid_element.classList.add("grid-el");
-                        grid_element.classList.add(`grid-c${i+1}r${j+1}`);
-                        grid_element.classList.add(`contribution-level-${this.heatmap.contributions[i][j]}`);
-                        grid_element.innerHTML = this.heatmap.contributions[i][j];
-                        grid_element.style.gridColumn = i + 2;
-                        grid_element.style.gridRow = j + 2;
-                        grid_element.addEventListener("click", ()=>{this.edit_contents(i, j)});
-                        this.heatmapEl.appendChild(grid_element)
-                    }
-                }
-            },
-
-            drawBorder() {
-                let el = document.querySelector('.gridbars');
-                el.style.gridColumnEnd = this.heatmap.cols.length + 2;
-                el.style.gridRowEnd = this.heatmap.rows.length + 2;
             },
 
             edit_contents(col ,row) {
@@ -212,28 +144,175 @@
                 this.drawCursor()
             },
 
+            addRow(name) {
+                this.CTAB.rows.splice( this.cursor.row, 0, name);
+                // update the contributions arrays (add a zero to each array in .contributions at appropriate index)
+                for (let singleContribution of this.CTAB.contributions) {
+                    singleContribution.splice(this.cursor.row , 0, this.metadata.lowerDegreeLimit)
+                }
+                // make sure we automatically select the text box to enter name
+                this.$nextTick(() => {
+                    // focus on the last text input element (which is the one we just added!)
+                    this.setInputFocus( 'row' + (this.cursor.row+1) );
+                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
+                    // update the cursor (move it to the location the user is most likely to want to start editing)
+                    this.cursor = {row: this.cursor.row+1, col: 1 };
+                    this.drawCursor()
+                });
+            },
+
+            addColumn(name) {
+                this.CTAB.cols.splice( this.cursor.col, 0, name);
+                // update the contributions array (in this case simply add an array of zeros)
+                this.CTAB.contributions.splice(this.cursor.col, 0, Array(this.CTAB.rows.length).fill(this.metadata.lowerDegreeLimit));
+                // make sure we automatically select the text box to enter name
+                this.$nextTick(() => {
+                    // focus on the last text input element (which is the one we just added!)
+                    this.setInputFocus( 'col' + (this.cursor.col+1) );
+                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
+                    // update the cursor (move it to the location the user is most likely to want to start editing)
+                    this.cursor = {row: 1, col: this.cursor.col+1 };
+                    this.drawCursor()
+                });
+            },
+
+            // remove a row based on the current value of currentSquare
+            removeRow() {
+                if (this.cursor.row !== 0){  // we cannot remove the header
+                    if (this.CTAB.rows.length > 1) { // cannot remove if we only have one left
+                        console.log('removing row nr: ' + this.cursor.row);
+                        this.CTAB.rows.splice(this.cursor.row - 1, 1);
+                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
+                        // also update the CTAB.contributions
+                        this.CTAB.contributions.forEach(contribution => contribution.splice(this.cursor.row-1,1));
+                    }
+                }
+            },
+
+            // remove a column based on the current value of currentSquare
+            removeColumn() {
+                if (this.cursor.col !== 0){  // we cannot remove the header
+                    if (this.CTAB.cols.length > 1) { // cannot remove if we only have one left
+                        console.log('removing column nr: ' + this.cursor.col);
+                        this.CTAB.cols.splice(this.cursor.col - 1, 1);
+                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
+                        // also update the CTAB.contributions
+                        this.CTAB.contributions.splice(this.cursor.col-1, 1)
+                    }
+                }
+            },
+
+            setContribution(contributionDegree) {
+                if (this.cursor.col>0 && this.cursor.row>0) {  // avoid setting a contribution level on a header
+                    console.log(`Setting contribution of ${this.CTAB.cols[this.cursor.col-1]} in category ${this.CTAB.rows[this.cursor.row-1]} to: ${contributionDegree}`);
+                    this.CTAB.contributions[this.cursor.col - 1].splice(this.cursor.row - 1, 1, contributionDegree);
+                }
+                this.$nextTick(() => {
+                    this.drawCursor()
+                });
+            },
+
+            // change the contribution level at the current cursor location. increases or decreases the value, rather
+            // than directly setting a value for it
+            changeContribution(shouldBeIncreased) {
+                if (this.cursor.row > 0 && this.cursor.col > 0) {  // not in header or labels
+                    let currentContributionDegree = this.CTAB.contributions[this.cursor.col - 1][this.cursor.row - 1];
+                    if (shouldBeIncreased && currentContributionDegree < this.metadata.upperDegreeLimit) {  // incease onlu if allowed
+                        this.CTAB.contributions[this.cursor.col-1].splice(this.cursor.row-1, 1, currentContributionDegree + 1);
+                    } else if (!shouldBeIncreased && currentContributionDegree > this.metadata.lowerDegreeLimit) { // decrease only if allowed
+                        this.CTAB.contributions[this.cursor.col-1].splice(this.cursor.row-1, 1, currentContributionDegree - 1);
+                    }
+                    this.$nextTick(() => {
+                        this.drawCursor()
+                    });
+                }
+            },
+
+            // move row or column up or down (swap position with col above, below)
+            rearrangeCTAB(direction) {
+                if (direction === 1 && this.cursor.col < (this.CTAB.cols.length)  && this.cursor.col !==0 ) {
+                    // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
+                    const currentIndex = this.cursor.col-1;
+                    const swapIndex = this.cursor.col;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.cols[swapIndex];
+                    const current = this.CTAB.cols[currentIndex];
+                    this.CTAB.cols.splice(swapIndex, 1, current);
+                    this.CTAB.cols.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_contributions = this.CTAB.contributions[swapIndex];
+                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                } else if (direction === 2 && this.cursor.col > 1) {
+                    // if move left (swap with col left) - we check there is a column to the left
+                    const currentIndex = this.cursor.col-1;
+                    const swapIndex = this.cursor.col-2;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.cols[swapIndex];
+                    const current = this.CTAB.cols[currentIndex];
+                    this.CTAB.cols.splice(swapIndex, 1, current);
+                    this.CTAB.cols.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_contributions = this.CTAB.contributions[swapIndex];
+                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                } else if (direction === 3 && this.cursor.row > 1) {
+                    // if move up (swap with row above) - we check there is a row above
+                    const currentIndex = this.cursor.row-1;
+                    const swapIndex = this.cursor.row-2;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.rows[swapIndex];
+                    const current = this.CTAB.rows[currentIndex];
+                    this.CTAB.rows.splice(swapIndex, 1, current);
+                    this.CTAB.rows.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                } else if (direction === 4 && this.cursor.row < (this.CTAB.rows.length) && this.cursor.row !==0 ) {
+                    // if move down (swap with row below) - we check there is a row below (and we are not in labels)
+                    const currentIndex = this.cursor.row-1;
+                    const swapIndex = this.cursor.row;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.rows[swapIndex];
+                    const current = this.CTAB.rows[currentIndex];
+                    this.CTAB.rows.splice(swapIndex, 1, current);
+                    this.CTAB.rows.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                }
+                this.$nextTick(() => {
+                    this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
+                });
+            },
+
             // attempt to move the 'cursor'
             moveCurrentSquare(directionVal) {
                 //console.log('moving cursor' + directionVal)
-                if (directionVal === 1) { // right
-                    if (this.cursor.col < this.heatmap.cols.length) {
-                        this.cursor.col++;
-                    }
-                } else if (directionVal === 2) {// left
-                    if (this.cursor.row === 0 && this.cursor.col > 1) { // we are in header row, so we can only go to 1
-                        this.cursor.col--;
-                    } else if (this.cursor.row > 0 && this.cursor.col > 0 ) { // we cant go further than 0
-                        this.cursor.col--;
-                    }
-                } else if (directionVal === 3) {// up
-                    if (this.cursor.col === 0 && this.cursor.row > 1) { // we are in row labels, so we can only go to 1
-                        this.cursor.row--;
-                    } else if (this.cursor.col > 0 &&this.cursor.row > 0 ) { // we cant go further than 0
-                        this.cursor.row--;
-                    }
-                } else if (directionVal === 4) {// down
-                    if (this.cursor.row < this.heatmap.rows.length) {
-                        this.cursor.row++;
+                // we do not allow the cursor to be moved (directionally) when we are currently editing an input
+                if (this.focusedInput === null) {
+                    if (directionVal === 1) { // right
+                        if (this.cursor.col < this.CTAB.cols.length) {
+                            this.cursor.col++;
+                        }
+                    } else if (directionVal === 2) {// left
+                        if (this.cursor.row === 0 && this.cursor.col > 1) { // we are in header row, so we can only go to 1
+                            this.cursor.col--;
+                        } else if (this.cursor.row > 0 && this.cursor.col > 0) { // we cant go further than 0
+                            this.cursor.col--;
+                        }
+                    } else if (directionVal === 3) {// up
+                        if (this.cursor.col === 0 && this.cursor.row > 1) { // we are in row labels, so we can only go to 1
+                            this.cursor.row--;
+                        } else if (this.cursor.col > 0 && this.cursor.row > 0) { // we cant go further than 0
+                            this.cursor.row--;
+                        }
+                    } else if (directionVal === 4) {// down
+                        if (this.cursor.row < this.CTAB.rows.length) {
+                            this.cursor.row++;
+                        }
                     }
                 }
                 this.drawCursor()
@@ -250,140 +329,36 @@
                 focusedEl.focus()
             },
 
-            addRow(name) {
-                this.heatmap.rows.splice( this.cursor.row, 0, name);
-                // update the contributions arrays (add a zero to each array in .contributions at appropriate index)
-                for (let singleContribution of this.heatmap.contributions) {
-                    singleContribution.splice(this.cursor.row , 0, this.metadata.lowerDegreeLimit)
-                }
-                // make sure we automatically select the text box to enter name
-                this.$nextTick(() => {
-                    // focus on the last text input element (which is the one we just added!)
-                    this.$refs[ 'row' + (this.cursor.row+1) ][0].focus();
-                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
-                });
-            },
-
-            addColumn(name) {
-                this.heatmap.cols.splice( this.cursor.col, 0, name);
-                // update the contributions array (in this case simply add an array of zeros)
-                this.heatmap.contributions.splice(this.cursor.col, 0, Array(this.heatmap.rows.length).fill(this.metadata.lowerDegreeLimit));
-                // make sure we automatically select the text box to enter name
-                this.$nextTick(() => {
-                    // focus on the last text input element (which is the one we just added!)
-                    this.$refs[ 'col' + (this.cursor.col+1) ][0].focus();
-                    Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);
-                });
-            },
-
-            // remove a row based on the current value of currentSquare
-            removeRow() {
-                if (this.cursor.row !== 0){  // we cannot remove the header
-                    if (this.heatmap.rows.length > 1) { // cannot remove if we only have one left
-                        console.log('removing row nr: ' + this.cursor.row);
-                        this.heatmap.rows.splice(this.cursor.row - 1, 1);
-                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
-                        // also update the heatmap.contributions
-                        this.heatmap.contributions.forEach(contribution => contribution.splice(this.cursor.row-1,1));
-                    }
+            editLabel() {
+                if (this.focusedInput !== null) {  // an input was previously selected (either through cursor **or** adding new column/row
+                    this.setInputFocus(this.focusedInput)
+                } else if (this.cursor.row === 0) {  // nothing currently selected, but cursor is in the column labels
+                    this.setInputFocus( 'col' + (this.cursor.col) );
+                } else if (this.cursor.col === 0) {  // nothing currently selected, but cursor is in the row labels
+                    this.setInputFocus( 'row' + (this.cursor.row) );
                 }
             },
 
-            // remove a column based on the current value of currentSquare
-            removeColumn() {
-                if (this.cursor.col !== 0){  // we cannot remove the header
-                    if (this.heatmap.cols.length > 1) { // cannot remove if we only have one left
-                        console.log('removing column nr: ' + this.cursor.col);
-                        this.heatmap.cols.splice(this.cursor.col - 1, 1);
-                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
-                        // also update the heatmap.contributions
-                        this.heatmap.contributions.splice(this.cursor.col-1, 1)
-                    }
+            // select or deselect input element
+            setInputFocus(ref) {
+                console.log('called set focus', ref);
+                if (this.focusedInput !== ref) {
+                    console.log('setting focus', ref);
+                    this.$refs[ref][0].focus();
+                    this.focusedInput=ref;
+                } else {
+                    console.log('blurring', ref);
+                    this.$refs[this.focusedInput][0].blur();
+                    this.focusedInput = null;
                 }
             },
 
-            setContribution(contributionDegree) {
-                if (this.cursor.col>0 && this.cursor.row>0) {  // avoid setting a contribution level on a header
-                    console.log(`Setting contribution of ${this.heatmap.cols[this.cursor.col-1]} in category ${this.heatmap.rows[this.cursor.row-1]} to: ${contributionDegree}`);
-                    this.heatmap.contributions[this.cursor.col - 1].splice(this.cursor.row - 1, 1, contributionDegree);
-                }
-                this.$nextTick(() => {
-                    this.drawCursor()
-                });
-            },
-
-            // change the contribution level at the current cursor location. increases or decreases the value, rather
-            // than directly setting a value for it
-            changeContribution(shouldBeIncreased) {
-                if (this.cursor.row > 0 && this.cursor.col > 0) {  // not in header or labels
-                    let currentContributionDegree = this.heatmap.contributions[this.cursor.col - 1][this.cursor.row - 1]
-                    if (shouldBeIncreased && currentContributionDegree < this.metadata.upperDegreeLimit) {  // incease onlu if allowed
-                        this.heatmap.contributions[this.cursor.col-1].splice(this.cursor.row-1, 1, currentContributionDegree + 1);
-                    } else if (!shouldBeIncreased && currentContributionDegree > this.metadata.lowerDegreeLimit) { // decrease only if allowed
-                        this.heatmap.contributions[this.cursor.col-1].splice(this.cursor.row-1, 1, currentContributionDegree - 1);
-                    }
-                }
-            },
-
-            // move row or column up or down (swap position with col above, below)
-            rearrangeHeatmap(direction) {
-
-                if (direction === 1 && this.cursor.col < (this.heatmap.cols.length)  && this.cursor.col !==0 ) {
-                    // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
-                    const currentIndex = this.cursor.col-1;
-                    const swapIndex = this.cursor.col;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.heatmap.cols[swapIndex];
-                    const current = this.heatmap.cols[currentIndex];
-                    this.heatmap.cols.splice(swapIndex, 1, current);
-                    this.heatmap.cols.splice(currentIndex, 1, target);
-                    // make sure we also rearrange heatmap.contributions
-                    const target_contributions = this.heatmap.contributions[swapIndex];
-                    this.heatmap.contributions.splice(swapIndex, 1, this.heatmap.contributions[currentIndex]);
-                    this.heatmap.contributions.splice(currentIndex, 1, target_contributions)
-                } else if (direction === 2 && this.cursor.col > 1) {
-                    // if move left (swap with col left) - we check there is a column to the left
-                    const currentIndex = this.cursor.col-1;
-                    const swapIndex = this.cursor.col-2;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.heatmap.cols[swapIndex];
-                    const current = this.heatmap.cols[currentIndex];
-                    this.heatmap.cols.splice(swapIndex, 1, current);
-                    this.heatmap.cols.splice(currentIndex, 1, target);
-                    // make sure we also rearrange heatmap.contributions
-                    const target_contributions = this.heatmap.contributions[swapIndex];
-                    this.heatmap.contributions.splice(swapIndex, 1, this.heatmap.contributions[currentIndex]);
-                    this.heatmap.contributions.splice(currentIndex, 1, target_contributions)
-                } else if (direction === 3 && this.cursor.row > 1) {
-                    // if move up (swap with row above) - we check there is a row above
-                    const currentIndex = this.cursor.row-1;
-                    const swapIndex = this.cursor.row-2;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.heatmap.rows[swapIndex];
-                    const current = this.heatmap.rows[currentIndex];
-                    this.heatmap.rows.splice(swapIndex, 1, current);
-                    this.heatmap.rows.splice(currentIndex, 1, target);
-                    // make sure we also rearrange heatmap.contributions
-                    const target_category = this.heatmap.contributions.map(x => x[swapIndex]);
-                    this.heatmap.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                    this.heatmap.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
-                } else if (direction === 4 && this.cursor.row < (this.heatmap.rows.length) && this.cursor.row !==0 ) {
-                    // if move down (swap with row below) - we check there is a row below (and we are not in labels)
-                    const currentIndex = this.cursor.row-1;
-                    const swapIndex = this.cursor.row;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.heatmap.rows[swapIndex];
-                    const current = this.heatmap.rows[currentIndex];
-                    this.heatmap.rows.splice(swapIndex, 1, current);
-                    this.heatmap.rows.splice(currentIndex, 1, target);
-                    // make sure we also rearrange heatmap.contributions
-                    const target_category = this.heatmap.contributions.map(x => x[swapIndex]);
-                    this.heatmap.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                    this.heatmap.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
-                }
-                this.$nextTick(() => {
-                    this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
-                });
+            // Reset the contribution table to an empty state (i.e. clear table)
+            resetTable() {
+                console.log('Resetting CTAB...');
+                this.cursor = {row:1, col:1}; // reset cursor
+                this.CTAB = {version: this.CTAB.version, cols:['undefined'], rows:['empty'], contributions: [[0]]}
+                this.drawCursor()
             },
 
             handleKeyPress(event) {
@@ -402,16 +377,22 @@
                     this.removeColumn();
                     event.preventDefault();  // prevent typing 'W'
                 } else if (this.keysDown["Shift"] && this.keysDown['ArrowRight']) {
-                    this.rearrangeHeatmap(1);
+                    this.rearrangeCTAB(1);
                     event.preventDefault();
                 } else if (this.keysDown["Shift"] && this.keysDown['ArrowLeft']) {
-                    this.rearrangeHeatmap(2);
+                    this.rearrangeCTAB(2);
                     event.preventDefault();
                 } else if (this.keysDown["Shift"] && this.keysDown['ArrowUp']) {
-                    this.rearrangeHeatmap(3);
+                    this.rearrangeCTAB(3);
                     event.preventDefault();
                 } else if (this.keysDown["Shift"] && this.keysDown['ArrowDown']) {
-                    this.rearrangeHeatmap(4);
+                    this.rearrangeCTAB(4);
+                    event.preventDefault();
+                } else if (this.keysDown['?']) {
+                    this.resetTable();
+                    event.preventDefault();
+                } else if (this.keysDown['Enter']) {
+                    this.editLabel();
                     event.preventDefault();
                 } else if (this.keysDown['ArrowRight']) {
                     this.moveCurrentSquare(1);
@@ -440,7 +421,7 @@
 
             testCopy(){
                 const doc = document;
-                const text = doc.getElementById( 'tabley' );
+                const text = doc.getElementById( 'editor-tbl' );
                 let range;
                 let selection;
 
@@ -466,16 +447,22 @@
                 window.getSelection().removeAllRanges();
             },
 
-            testClicky(i,j) {
-                console.log('i: ' + i + ' and j: ' + j)
-                this.edit_contents(i,j);
-            }
+            parseQuery() {
+                // in the URL a CTAB can be specified following the # symbol. see docs for more.
+                let query = new URLSearchParams(window.location.hash);
+                let parsedCTAB = parseEditorQuery(query);
+                // make sure that whatever the hash parameters were, it is actually a valid CTAB
+                if ( isValidCTAB( parsedCTAB ) ) {
+                    console.log('[Parser] adding CTAB from query string!');
+                    this.CTAB = parsedCTAB;
+                }
+            },
         },
         mounted() {
             // initialise a grid from rows + categories
-            this.heatmapEl = document.querySelector('#editor-grid');
+            this.tableEl = document.querySelector('#editor-tbl');
 
-            this.drawHeatmap();
+            this.drawTable();
             // handle keypresses
             window.addEventListener("keydown", this.handleKeyPress);
             window.addEventListener("keyup", this.handleKeyUp);
@@ -487,18 +474,20 @@
             localStorage.getItem("meta_upperDegreeLimit") !== null ? this.metadata.upperDegreeLimit = Number(localStorage.getItem("meta_upperDegreeLimit")) :
                 localStorage.setItem("meta_upperDegreeLimit", String(this.metadata.upperDegreeLimit));
 
+            // parse any possible query string
+            this.parseQuery();
 
-            // make sure the heatmap has proper ctrl-c behaviour (the clipboard is formatted correctly)
+            // make sure the CTAB has proper ctrl-c behaviour (the clipboard is formatted correctly)
             // document.getElementById('editor-grid').addEventListener('copy', (e)=>{
             //     e.preventDefault();
-            //     e.clipboardData.setData("Text", exportPlainText(this.heatmap) );
+            //     e.clipboardData.setData("Text", exportPlainText(this.CTAB) );
             // });
         }
     }
 </script>
 
 <style>
-    .heatmap-editor {
+    .CTAB-editor {
         background-color: var(--theme-white);
         width: 100vw;
         height: 100vh;
@@ -507,61 +496,53 @@
         --gridsize: 40px;
     }
 
-    .heatmap-html-element{
+    .editor-tbl-container{
        display: flex;
         justify-content: center;
         flex-grow: 1
     }
 
-    #editor-grid {
-        display: grid;
-        grid-template-rows: 1f repeat(2, var(--gridsize));
-        grid-template-columns: 1fr repeat(2, var(--gridsize));
-        margin: 1rem;
-    }
-
-    .heatmap-meta {
-        color: transparent;
-        display: none;
-    }
-
-    .grid-el{
-        background-color: floralwhite;
-        width: 90%;
-        height: 90%;
-        margin: 10px;
-        font-size: 8px;
-        color: transparent;  /*hide text but keep it there for selection*/
-
-        justify-self: center;
-        align-self: center;
+    .CTAB-meta {
+        color: rgba(0,0,0,0.1);
     }
 
     table, th, td {border-collapse: collapse; border-spacing: 0}
 
-    .grid-el-tbl {
+    .grid-el {
         background-color: floralwhite;
         font-size: 8px;
-        color: transparent;  /*hide text but keep it there for selection*/
         border: 4px solid black;
         width: var(--gridsize);
         height: var(--gridsize);
     }
 
-    .grid-el.cursor, .grid-el-tbl.cursor{
-        border: #FFD800 solid 5px;
+    .grid-el.cursor{
+        position: relative;
+    }
+
+    .grid-el.cursor:before{
+        content : "";
+        position: absolute;
+        left    : 0;
+        bottom  : 0;
+        height  : 100%;
+        width   : 100%;
+        border: 2.5px solid var(--theme-soft-pink);
     }
 
     .contribution-level-0 {
         background-color: white;
+        color: white;
     }
 
     .contribution-level-1 {
         background-color: #A0A0A0;
+        color: #A0A0A0;
     }
 
     .contribution-level-2 {
         background-color: 	#303030;
+        color: #303030
     }
 
     .gridbars {
@@ -578,22 +559,15 @@
         flex-grow: 1
     }
 
-    .heatmap-row {
-        align-self: center;
-        justify-self: end;
-        margin-right: 1rem;
-        grid-column: 0;
-    }
-
-    .heatmap-row-tbl{
+    .CTAB-row{
         padding-right: 0.8rem;
     }
 
-    .heatmap-row.cursor {
+    .CTAB-row.cursor {
         font-weight: bold;
     }
 
-    .heatmap-column {
+    .CTAB-column {
         align-self: end;
         justify-self: center;
 
@@ -601,16 +575,7 @@
         position: relative;
     }
 
-    .heatmap-column-input {
-        position: absolute;
-        bottom: 0px;
-        left: -5px;
-        transform-origin: center left;
-        transform: rotate(-70deg);
-        width: 100px;
-    }
-
-    .heatmap-column-input-tbl {
+    .CTAB-column-input {
         position: absolute;
         bottom: 0px;
         left: 15px;
@@ -619,7 +584,7 @@
         width: 100px;
     }
 
-    .cursor .heatmap-column-input  {
+    .cursor .CTAB-column-input  {
         font-weight: bold;
     }
 
@@ -628,13 +593,14 @@
     }
 
     .shortcut-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: bold;
+        padding-bottom: 0.3rem;
         color: var(--theme-deep-red);
     }
 
     .shortcut-hint {
-        margin: 6px 0px;
+        margin: 10px 0px;
     }
 
     .keyboard-key {
@@ -647,7 +613,7 @@
     }
 
     /* ensure rows are right aligned*/
-    .heatmap-row .v-text-field input, .heatmap-row-tbl .v-text-field input {
+    .CTAB-row .v-text-field input {
         text-align: right;
     }
 

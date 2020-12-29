@@ -82,7 +82,7 @@
 </template>
 
 <script>
-    import { exportPlainText, exportRichLatex, exportBasicLatex } from "../export.js"
+    import { exportPlainText, exportRichLatex, exportBasicLatex, exportEditorLink } from "../export.js"
     export default {
         name: "ExportCard",
         data: () => ({
@@ -139,7 +139,14 @@
             },
 
             exportLink() {
-                console.log('link')
+                const link = exportEditorLink(this.contributionTable)
+                this.copyStringToClipboard(link);
+
+                this.notify('Copied editor link to clipboard. Share it with others!')
+                // // testing
+                // window.location.hash='';
+                // window.location.hash+=link.split('#')[1];
+                // location.reload();
             },
 
             exportLaTeX(alternate) {

@@ -1,15 +1,15 @@
 <template>
   <v-app>
-    <heatmap-editor></heatmap-editor>
+    <ctab-editor></ctab-editor>
   </v-app>
 </template>
 
 <script>
-import HeatmapEditor from "../../components/HeatmapEditor";
+import CtabEditor from "../../components/CtabEditor";
 
 export default {
   name: 'App',
-  components: {HeatmapEditor},
+  components: {CtabEditor},
   data: () => ({
     //
   }),
