@@ -1,15 +1,13 @@
 <template>
   <v-app>
-    <ctab-editor></ctab-editor>
+    <router-view></router-view>
   </v-app>
 </template>
 
 <script>
-import CtabEditor from "../../components/CtabEditor";
 
 export default {
   name: 'App',
-  components: {CtabEditor},
   data: () => ({
     //
   }),

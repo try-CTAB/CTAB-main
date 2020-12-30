@@ -18,10 +18,10 @@
             <div class="import-box">
                 <div class="mini-header">
                     <div class="ext-link">
-                        <a href="/" target="_blank">
+                        <router-link to="/">
                         <span class="ext-link-text">Read the <span class="acc">why</span></span>
                         <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
-                        </a>
+                        </router-link>
                     </div>
                     <div class="ext-link">
                         <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank">
@@ -464,6 +464,9 @@
             },
 
             testCopy(){
+                let routeData = this.$router.resolve({name: 'html-CTAB' });
+                window.open(routeData.href, '_blank');
+
                 const doc = document;
                 const text = doc.getElementById( 'editor-tbl' );
                 let range;
