@@ -1,8 +1,41 @@
 <template>
     <div class="CTAB-editor">
-        <button @click="testCopy">Copy HTML rough</button>
-        <div class="format-box">
-            <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank" style="margin: 1rem; font-size: 1.4rem">Docs</a>
+        <div class="mobile-message mobile">
+            <div class="mobile-message-contents">
+            Sorry, on mobile devices functionality is limited to view only. Use a desktop or tablet
+            to create and edit tables!
+            </div>
+        </div>
+
+        <div class="top-flexbox">
+            <div class="title-box">
+                <div class="title-major">
+                    Build your <br>
+                    <span class="acc">Contribution <br>
+                    Table </span> today
+                </div>
+            </div>
+            <div class="import-box">
+                <div class="mini-header">
+                    <div class="ext-link">
+                        <a href="/" target="_blank">
+                        <span class="ext-link-text">Read the <span class="acc">why</span></span>
+                        <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
+                        </a>
+                    </div>
+                    <div class="ext-link">
+                        <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank">
+                        <span class="ext-link-text">Read the <span class="acc">how</span></span>
+                        <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
+                        </a>
+                    </div>
+                </div>
+
+
+                <button @click="testCopy">[WIP] Copy HTML rough</button>
+                <div>import options</div>
+
+            </div>
         </div>
         <div class="editor-flexbox">
             <div class="shortcut-box">
@@ -39,6 +72,7 @@
                                     v-model="CTAB.cols[index]"
                                     :ref="'col'+(index+1)"
                                     @focus="$event.target.select()"
+                                    @click="editLabelClick(index+1,0)"
                             ></v-text-field></div>
                         </td>
                     </tr>
@@ -51,13 +85,13 @@
                             v-model="CTAB.rows[rowIndex]"
                             :ref="'row'+(rowIndex+1)"
                             @focus="$event.target.select()"
-
+                            @click="editLabelClick(0,rowIndex+1)"
                             ></v-text-field></td> <!--v-on:keydown.enter="$event.target.blur()"-->
                         <td v-for=" (val, colIndex) in CTAB.contributions.map(contribution => contribution[rowIndex])"
                             :key="val.id"
                             class="grid-el"
                             :class="'contribution-level-'+val + ' grid-c' + (colIndex+1) + 'r' + (rowIndex+1)"
-                            @click="edit_contents(colIndex, rowIndex)">
+                            @click="editContents(colIndex, rowIndex)">
                             {{'*'.repeat(val)}}
                         </td>
                     </tr>
@@ -130,7 +164,6 @@
 
             testFocus(index) {
                 console.log('FOcusssing on' + index);
-                this.$refs[ 'col' + (index+1) ][0].focus()
             },
 
             drawTable() {
@@ -138,7 +171,7 @@
                 this.drawCursor()
             },
 
-            edit_contents(col ,row) {
+            editContents(col , row) {
                 this.cursor.row = row+1;
                 this.cursor.col = col+1;
                 this.drawCursor()
@@ -339,6 +372,17 @@
                 }
             },
 
+            // when an input is clicked we want to (1) move the cursor and (2) set the input focus so [Enter] behaviour works
+            editLabelClick(col, row) {
+                if (col === 0) {
+                    this.editContents(-1, row-1); // sets cursor
+                    this.setInputFocus( 'row' + (this.cursor.row) );
+                } else if (row === 0) {
+                    this.editContents(col-1, -1); // sets cursor
+                    this.setInputFocus( 'col' + (this.cursor.col) );
+                }
+            },
+
             // select or deselect input element
             setInputFocus(ref) {
                 console.log('called set focus', ref);
@@ -490,10 +534,88 @@
     .CTAB-editor {
         background-color: var(--theme-white);
         width: 100vw;
-        height: 100vh;
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
         --gridsize: 40px;
+    }
+
+    .top-flexbox {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .title-box {
+        padding: 2rem;
+        margin-left: 4rem;
+    }
+
+    .title-major {
+        font-size: 5rem;
+        text-transform: uppercase;
+        line-height: 100%;
+        font-family: 'Anton', sans-serif;
+        color: var(--theme-brown);
+    }
+
+    .title-major .acc {
+        color: var(--theme-reddish)
+    }
+
+    .import-box {
+        flex-grow: 1;
+    }
+
+    .mini-header {
+        display: flex;
+        justify-content: flex-end;
+        padding-right: 2rem;
+
+    }
+
+    .ext-link {
+        padding: 1.6rem 1.3rem;
+    }
+
+    .ext-link-text {
+        color: black;
+        display: inline-block;
+        background-color: var(--theme-white);
+        z-index: 2;
+        position: relative;
+        padding: 5px 2px 5px 0;
+        font-weight: bold;
+        transition: transform 0.4s, color 0.3s;
+    }
+
+    .ext-link:hover .ext-link-text, .ext-link:hover .ext-link-icon i.v-icon{
+        transform: translateX(4px);
+    }
+
+
+    .ext-link:hover .ext-link-text .acc {
+        color: var(--theme-reddish);
+    }
+
+    .ext-link-icon {
+        position: relative;
+    }
+
+    .ext-link-icon i.v-icon {
+        font-size: 1.8rem;
+        display: inline-block;
+    }
+
+    .ext-link-icon-circle {
+        position:  absolute;
+        top: 50%;  /* position the top  edge of the element at the middle of the parent */
+        left: 50%; /* position the left edge of the element at the middle of the parent */
+        transform: translate(-50%, -50%);
+        height: 60px;
+        width: 60px;
+        border-radius: 50%;
+        border: 3px solid var(--theme-reddish);
+        z-index: 1;
     }
 
     .editor-tbl-container{
@@ -554,6 +676,7 @@
 
     .editor-flexbox {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         flex-grow: 1
@@ -628,13 +751,14 @@
         font-size: 1.3rem;
         text-align: center;
         font-weight: bold;
-        color: var(--theme-brightpink);
+        color: var(--theme-reddish);
     }
 
     .export-options {
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-wrap: wrap;
         height: 100%;
     }
 
@@ -646,7 +770,7 @@
         margin: 0.5rem;
         font-weight: bold;
         font-size: 1.1rem;
-        color: var(--theme-brightpink);
+        color: var(--theme-reddish);
         z-index: 1;
     }
 
@@ -658,6 +782,68 @@
     /*    bottom: 0;*/
     /*    z-index: 0;*/
     /*}*/
+
+    .mobile {
+        display: none;
+    }
+
+    /* styles for mobile devices */
+    @media only screen and (max-width: 600px) {
+        .title-box {
+            margin: 0;
+        }
+
+        .title-major {
+            font-size: 16vw
+        }
+
+        .title-box {
+            padding-bottom: 0;
+        }
+
+
+        .shortcut-box{
+            display: none;
+        }
+
+        .export-box {
+            display: none;
+        }
+
+        .mobile {
+            display: inherit;
+        }
+
+        .mobile-message {
+            width: 100vw;
+            padding: 1.2rem 2rem;
+            background-color: var(--theme-deep-red);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .mobile-message-contents{
+            color: white;
+            border-left: 5px solid white;
+            padding-left: 0.6rem;
+        }
+
+        .grid-el.cursor:before{
+            content : none;
+        }
+
+        .editor-tbl-container {
+            pointer-events: none;
+        }
+
+        .editor-flexbox {
+            /*padding: 3rem;*/
+        }
+
+        .mini-header {
+            padding: 0 1rem 0 0;
+            justify-content: center;
+        }
+    }
 
 </style>
 

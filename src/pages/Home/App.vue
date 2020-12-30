@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div>homey</div>
+    <div style="font-size: 2rem">Under development</div>
   </v-app>
 </template>
 

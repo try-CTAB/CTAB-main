@@ -80,7 +80,7 @@ export function exportEditorLink(CTAB) {
     baseURLString += 'version=' + CTAB.version;
     baseURLString += '&cols=' + CTAB.cols.map(col => col.replace(/ /g, '%20'));  // replace spaces with %20
     baseURLString += '&rows=' + CTAB.rows.map(row => row.replace(/ /g, '%20'));  // replace spaces with %20
-    baseURLString += '&contributions=' + CTAB.contributions.join('>');
+    baseURLString += '&contributions=' + CTAB.contributions.join('~');
 
     return baseURLString
 }

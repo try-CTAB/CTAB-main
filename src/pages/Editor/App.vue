@@ -17,12 +17,22 @@ export default {
 </script>
 
 <style>
+  body {
+    background-color: var(--theme-white);
+  }
+
+  /*::-webkit-scrollbar {*/
+  /*  display: none;*/
+  /*}*/
+
   :root {
     --theme-white: #E3E2DF;
     --theme-soft-pink: #E3AFBC;
     --theme-oxblood: #5D001E;
     --theme-brightpink: #EE4C7C;
     --theme-deep-red: #9A1750;
+    --theme-brown: #2d231c;
+    --theme-reddish: #E40044;
     --keyboard-white: white
   }
 
