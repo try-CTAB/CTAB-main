@@ -206,8 +206,7 @@
                 version: ' undefined'};
 
             // this component will always be opened with a query string
-            let query = new URLSearchParams(window.location.search);
-            let parsedCTAB = parseEditorQuery(query);
+            let parsedCTAB = parseEditorQuery( this.$route.query );
             if ( isValidCTAB( parsedCTAB ) ) {
                 console.log('[Parser] adding CTAB from query string!');
                 this.CTAB = parsedCTAB;

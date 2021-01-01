@@ -6,7 +6,6 @@
             to create and edit tables!
             </div>
         </div>
-
         <div class="top-flexbox">
             <div class="title-box">
                 <div class="title-major">
@@ -40,14 +39,14 @@
         <div class="editor-flexbox">
             <div class="shortcut-box">
                 <div class="shortcut-title">Keyboard Shortcuts</div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">C</span> for a new column </div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">R</span> for a new row </div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">C</span> for a new column </div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">R</span> for a new row </div>
                 <div class="shortcut-hint"> Use <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span> To navigate </div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">Q</span> to delete a row</div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Shift</span>+<span class="keyboard-key">W</span> to delete a column</div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">Q</span> to delete a row</div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">S</span> to delete a column</div>
                 <div class="shortcut-hint"> Use <span class="keyboard-key">Shift </span>+<span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
@@ -90,7 +89,7 @@
                         <td v-for=" (val, colIndex) in CTAB.contributions.map(contribution => contribution[rowIndex])"
                             :key="val.id"
                             class="grid-el"
-                            :class="'contribution-level-'+val + ' grid-c' + (colIndex+1) + 'r' + (rowIndex+1)"
+                            :class="'contribution-level-' + val + ' grid-c' + (colIndex+1) + 'r' + (rowIndex+1)"
                             @click="editContents(colIndex, rowIndex)">
                             {{'*'.repeat(val)}}
                         </td>
@@ -164,11 +163,6 @@
                 console.log('FOcusssing on' + index);
             },
 
-            drawTable() {
-                console.log('Re-drawing the contribution table');
-                this.drawCursor()
-            },
-
             editContents(col , row) {
                 this.cursor.row = row+1;
                 this.cursor.col = col+1;
@@ -213,9 +207,16 @@
                     if (this.CTAB.rows.length > 1) { // cannot remove if we only have one left
                         console.log('removing row nr: ' + this.cursor.row);
                         this.CTAB.rows.splice(this.cursor.row - 1, 1);
-                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
                         // also update the CTAB.contributions
                         this.CTAB.contributions.forEach(contribution => contribution.splice(this.cursor.row-1,1));
+                        // make sure we move the cursor too, to prevent getting out of bounds
+                        if (this.cursor.row-1 === this.CTAB.rows.length) {
+                            this.cursor.row--;
+                        }
+                        //update the cursor
+                        this.$nextTick(() => {
+                            this.drawCursor()
+                        });
                     }
                 }
             },
@@ -226,9 +227,16 @@
                     if (this.CTAB.cols.length > 1) { // cannot remove if we only have one left
                         console.log('removing column nr: ' + this.cursor.col);
                         this.CTAB.cols.splice(this.cursor.col - 1, 1);
-                        Object.keys(this.keysDown).forEach(v => this.keysDown[v] = false);  // prevent accidental multi-removal
                         // also update the CTAB.contributions
-                        this.CTAB.contributions.splice(this.cursor.col-1, 1)
+                        this.CTAB.contributions.splice(this.cursor.col-1, 1);
+                        // make sure we move the cursor too, to prevent getting out of bounds
+                        if (this.cursor.col-1 === this.CTAB.cols.length) {
+                            this.cursor.col--;
+                        }
+                        //update the cursor
+                        this.$nextTick(() => {
+                            this.drawCursor()
+                        });
                     }
                 }
             },
@@ -247,7 +255,7 @@
             // than directly setting a value for it
             changeContribution(shouldBeIncreased) {
                 if (this.cursor.row > 0 && this.cursor.col > 0) {  // not in header or labels
-                    let currentContributionDegree = this.CTAB.contributions[this.cursor.col - 1][this.cursor.row - 1];
+                    let currentContributionDegree = Number(this.CTAB.contributions[this.cursor.col - 1][this.cursor.row - 1]);
                     if (shouldBeIncreased && currentContributionDegree < this.metadata.upperDegreeLimit) {  // incease onlu if allowed
                         this.CTAB.contributions[this.cursor.col-1].splice(this.cursor.row-1, 1, currentContributionDegree + 1);
                     } else if (!shouldBeIncreased && currentContributionDegree > this.metadata.lowerDegreeLimit) { // decrease only if allowed
@@ -383,13 +391,10 @@
 
             // select or deselect input element
             setInputFocus(ref) {
-                console.log('called set focus', ref);
                 if (this.focusedInput !== ref) {
-                    console.log('setting focus', ref);
                     this.$refs[ref][0].focus();
                     this.focusedInput=ref;
                 } else {
-                    console.log('blurring', ref);
                     this.$refs[this.focusedInput][0].blur();
                     this.focusedInput = null;
                 }
@@ -406,18 +411,18 @@
             handleKeyPress(event) {
                 this.keysDown[event.key] = true;  // we store key's last state (true=pressed)
                 //console.log(event);
-                if (this.keysDown["Shift"] && (this.keysDown["C"] || this.keysDown["c"])) {
-                    this.addColumn('undefined');
+                if (this.keysDown["Control"] && (this.keysDown["C"] || this.keysDown["c"])) {
                     event.preventDefault();  // prevent typing 'c'
-                } else if (this.keysDown["Shift"] && (this.keysDown["R"] || this.keysDown["r"])) {
-                    this.addRow('empty');
+                    this.addColumn('undefined');
+                } else if (this.keysDown["Control"] && (this.keysDown["R"] || this.keysDown["r"])) {
                     event.preventDefault();  // prevent typing 'r'
-                } else if (this.keysDown["Shift"] && (this.keysDown["Q"] || this.keysDown["q"])) {
-                    this.removeRow();
+                    this.addRow('empty');
+                } else if (this.keysDown["Control"] && (this.keysDown["Q"] || this.keysDown["q"])) {
                     event.preventDefault();  // prevent typing 'q'
-                } else if (this.keysDown["Shift"] && (this.keysDown["W"] || this.keysDown["w"])) {
+                    this.removeRow();
+                } else if (this.keysDown["Control"] && (this.keysDown["S"] || this.keysDown["s"])) {
+                    event.preventDefault();  // prevent typing 's'
                     this.removeColumn();
-                    event.preventDefault();  // prevent typing 'W'
                 } else if (this.keysDown["Shift"] && this.keysDown['ArrowRight']) {
                     this.rearrangeCTAB(1);
                     event.preventDefault();
@@ -493,9 +498,8 @@
             },
 
             parseQuery() {
-                // in the URL a CTAB can be specified following the # symbol. see docs for more.
-                let query = new URLSearchParams(window.location.search);
-                let parsedCTAB = parseEditorQuery(query);
+                // in the URL a CTAB can be specified following the ? symbol. see docs for more.
+                let parsedCTAB = parseEditorQuery( this.$route.query );
                 // make sure that whatever the hash parameters were, it is actually a valid CTAB
                 if ( isValidCTAB( parsedCTAB ) ) {
                     console.log('[Parser] adding CTAB from query string!');
@@ -506,8 +510,9 @@
         mounted() {
             // initialise a grid from rows + categories
             this.tableEl = document.querySelector('#editor-tbl');
+            console.log('Contribution table editor loaded.')
 
-            this.drawTable();
+            this.drawCursor();
             // handle keypresses
             window.addEventListener("keydown", this.handleKeyPress);
             window.addEventListener("keyup", this.handleKeyUp);
@@ -730,7 +735,7 @@
     }
 
     /* ensure rows are right aligned*/
-    .CTAB-row .v-text-field input {
+    .CTAB-row >>> input{
         text-align: right;
     }
 

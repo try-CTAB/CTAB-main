@@ -1,9 +1,9 @@
 export function parseEditorQuery(query) {
-    console.log('[Parser] parsing (possible) query string...');
+    console.log('[Parser] parsing (possible) query string...', query);
     let newCTAB = {};
-    for (let [key, value] of query) {
+    for (let [key, value] of Object.entries(query)) {
         key = key.replace('#', '')
-        //console.log(key, '<->' , value.split(','));
+        console.log(key, '<->' , value.split(','));
         if (key === 'contributions') {
             newCTAB[key] = value.split('~').map(individualContribution => individualContribution.split(','))
         } else if (key === 'version') {
@@ -38,7 +38,6 @@ export function isValidCTAB(CTAB) {
             console.warn('Invalid CTAB: number of contribution sets does not match the number of columns');
         }
         if (!CTAB.contributions.every(contribution => {
-            console.log(contribution.length);
             return contribution.length === CTAB.rows.length
         })) {
             isValid = false;
