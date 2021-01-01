@@ -78,7 +78,7 @@
                 </v-btn>
             </template>
         </v-snackbar>
-        <plainCTAB v-if="showHTML" :show-source="false"></plainCTAB>
+        <plainCTAB v-if="showHTML" :show-source="false" :CTAB="contributionTable"></plainCTAB>
     </div>
 </template>
 

@@ -101,7 +101,10 @@
     export default {
         name: "plainCTAB",
         props: {
-            CTAB: {type:Object, default: () => {}},
+            CTAB: {type:Object, default: () => { return {cols: ['none'],
+                    rows: ['an error occurred'],
+                    contributions: [[0]],
+                    version: ' undefined'}}},
             showSource: {type: Boolean, default: true},
         },
         data: () => ({
@@ -199,12 +202,6 @@
             }
         },
         mounted() {
-            // set something in case an error occured
-            this.CTAB= {cols: ['none'],
-                rows: ['an error occurred'],
-                contributions: [[0]],
-                version: ' undefined'};
-
             // this component will always be opened with a query string
             let parsedCTAB = parseEditorQuery( this.$route.query );
             if ( isValidCTAB( parsedCTAB ) ) {
