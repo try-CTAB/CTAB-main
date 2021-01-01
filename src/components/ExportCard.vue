@@ -15,7 +15,7 @@
                         color="var(--theme-brightpink)"
                         @click="exportTable(false)"
                 >
-                    Export
+                    {{exportTextPrimary}}
                 </v-btn>
                 <!--not compatible with saveOption-->
                 <v-btn
@@ -78,24 +78,29 @@
                 </v-btn>
             </template>
         </v-snackbar>
+        <plainCTAB v-if="showHTML" :show-source="false"></plainCTAB>
     </div>
 </template>
 
 <script>
+    import plainCTAB from "./plainCTAB";
     import { exportPlainText, exportRichLatex, exportBasicLatex, exportEditorLink } from "../export.js"
     export default {
         name: "ExportCard",
+        components: {plainCTAB},
         data: () => ({
             reveal: false,
             snackbar: false,
             snackText: '',
+            showHTML: false
         }),
         props: {
             details: { type: Boolean, default: false },
             saveOption: { type: Boolean, default: false },
             notReady: { type: Boolean, default: false},
             contributionTable: {type:Object},
-            format: { type: String, default: 'raw'}
+            format: { type: String, default: 'raw'},
+            exportTextPrimary: {type: String, default: 'export'}
         },
         methods: {
             exportTable( alternate ) {
@@ -111,8 +116,17 @@
                     case 'LaTeX':
                         this.exportLaTeX( alternate );
                         break;
+                    case 'HTML':
+                        this.exportHTML();
+                        break;
+                    case 'Office':
+                        this.exportOffice();
+                        break;
+                    case 'pdf':
+                        this.exportPDF();
+                        break;
                     default:
-                        console.log('Error exporting table: unrecognised format')
+                        throw 'Error exporting table: unrecognised format'
                 }
                 console.log('Export complete.');
             },
@@ -139,7 +153,7 @@
             },
 
             exportLink() {
-                const link = exportEditorLink(this.contributionTable)
+                const link = exportEditorLink(this.contributionTable, false)
                 this.copyStringToClipboard(link);
 
                 this.notify('Copied editor link to clipboard. Share it with others!')
@@ -161,7 +175,50 @@
                 this.notify('Copied LaTeX to clipboard, you can now paste it somewhere')
             },
 
-            exportHTML() {},
+            exportHTML() {
+                let routeData = this.$router.resolve({name: 'html-CTAB' });
+                window.open(routeData.href+exportEditorLink(this.contributionTable, true), '_blank');
+                this.notify('Opening HTML representation (with source) in new tab...')
+            },
+
+            exportOffice() {
+                this.showHTML = true
+                this.notify('Microsoft Office compatible table copied to clipboard. Paste in e.g. MS Word.')
+
+                this.$nextTick(() => {
+                    const el = document.querySelector('.CTAB');
+                    el.style.backgroundColor = 'transparent';
+                    let range;
+                    let selection;
+
+                    if (document.body.createTextRange) {
+
+                        range = document.body.createTextRange();
+                        range.moveToElement(el);
+                        range.select();
+
+                    } else if (window.getSelection) {
+
+                        selection = window.getSelection();
+
+                        range = document.createRange();
+                        range.selectNodeContents(el);
+
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+
+                    }
+
+                    document.execCommand('copy');
+                    window.getSelection().removeAllRanges();
+                    this.showHTML = false
+                });
+
+            },
+
+            exportPDF () {
+                console.log('PDF is not yet supported')
+            },
 
             copyStringToClipboard(string) {
                 // copy to user clipboard
@@ -191,6 +248,10 @@
 
     .export-card-buttons {
         justify-content: space-between;
+    }
+
+    .export-item {
+        margin: 1rem;
     }
 
     .details-text a {

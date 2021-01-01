@@ -117,23 +117,23 @@
                     <template v-slot:quick-summary>Export the {{name}} as a LaTeX table</template>
                     <template v-slot:details-text>The default export includes the <b>[xcolor, array, graphicx, hhline]</b> packages. If you want a plain LaTeX version, press 'alt export' </template>
                 </export-card>
-                <export-card :notReady=true :contribution-table="CTAB">
-                    <template v-slot:header>PDF</template>
-                    <template v-slot:quick-summary>Export the {{name}} as a PDF object</template>
-                </export-card>
-                <export-card :notReady=true :contribution-table="CTAB">
+<!--                <export-card  :contribution-table="CTAB" format="pdf">-->
+<!--                    <template v-slot:header>PDF</template>-->
+<!--                    <template v-slot:quick-summary>Export the {{name}} as a PDF object</template>-->
+<!--                </export-card>-->
+                <export-card :contribution-table="CTAB" exportTextPrimary="Export" format="HTML">
                     <template v-slot:header> HTML</template>
                     <template v-slot:quick-summary>Export as HTML element, complete with styling and JS</template>
                 </export-card>
-                <export-card :notReady=true :contribution-table="CTAB">
+                <export-card :contribution-table="CTAB" format="Office">
                     <template v-slot:header>Word table</template>
                     <template v-slot:quick-summary>Export as a table for Microsoft Word</template>
                 </export-card>
-                <div class="export-item-spacer">OR</div>
-                <export-card :notReady=true :contribution-table="CTAB">
-                    <template v-slot:header>PNG</template>
-                    <template v-slot:quick-summary>Export as PNG raster image</template>
-                </export-card>
+<!--                <div class="export-item-spacer">OR</div>-->
+<!--                <export-card :notReady=true :contribution-table="CTAB">-->
+<!--                    <template v-slot:header>PNG</template>-->
+<!--                    <template v-slot:quick-summary>Export as PNG raster image</template>-->
+<!--                </export-card>-->
                 <div class="halfbackdrop"></div> <!--TODO remove or keep?-->
             </div>
         </div>
@@ -142,8 +142,6 @@
 
 <script>
     import ExportCard from "./ExportCard";
-    // eslint-disable-next-line no-unused-vars
-    import { exportPlainText } from "../export.js"
     import { parseEditorQuery, isValidCTAB } from "../parser.js"
     export default {
         name: "CTAB-editor",
@@ -453,9 +451,11 @@
                 } else if (this.keysDown['3']) {
                     this.setContribution(2)
                 } else if (this.keysDown['+'] || this.keysDown[']']) {
-                    this.changeContribution(true)
+                    this.changeContribution(true);
+                    event.preventDefault();
                 } else if (this.keysDown['_'] || this.keysDown['[']) {
-                    this.changeContribution(false)
+                    this.changeContribution(false);
+                    event.preventDefault();
                 }
             },
 
@@ -464,8 +464,6 @@
             },
 
             testCopy(){
-                let routeData = this.$router.resolve({name: 'html-CTAB' });
-                window.open(routeData.href, '_blank');
 
                 const doc = document;
                 const text = doc.getElementById( 'editor-tbl' );
@@ -496,7 +494,7 @@
 
             parseQuery() {
                 // in the URL a CTAB can be specified following the # symbol. see docs for more.
-                let query = new URLSearchParams(window.location.hash);
+                let query = new URLSearchParams(window.location.search);
                 let parsedCTAB = parseEditorQuery(query);
                 // make sure that whatever the hash parameters were, it is actually a valid CTAB
                 if ( isValidCTAB( parsedCTAB ) ) {
@@ -533,7 +531,7 @@
     }
 </script>
 
-<style>
+<style scoped>
     .CTAB-editor {
         background-color: var(--theme-white);
         width: 100vw;
@@ -670,13 +668,6 @@
         color: #303030
     }
 
-    .gridbars {
-        background-color: rgba(0,0,0,0.9);
-        /*border-radius: 5px;*/
-        grid-row-start: 2;
-        grid-column-start: 2;
-    }
-
     .editor-flexbox {
         display: flex;
         flex-wrap: wrap;
@@ -763,10 +754,6 @@
         align-items: center;
         flex-wrap: wrap;
         height: 100%;
-    }
-
-    .export-item {
-        margin: 1rem;
     }
 
     .export-item-spacer {

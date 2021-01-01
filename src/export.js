@@ -72,10 +72,13 @@ export function exportBasicLatex(CTAB) {
     return table
 }
 
-export function exportEditorLink(CTAB) {
+export function exportEditorLink(CTAB, skipbaseURL) {
     console.log('[Export Utilities] generating editor link for contribution table');
-    let baseURLString = window.location.href.split('#')[0];  // get URL minus any pre-existing params
-    baseURLString += '#';
+    let baseURLString = '';
+    if (!skipbaseURL) {
+        baseURLString = window.location.href.split('?')[0];  // get URL minus any pre-existing params
+    }
+    baseURLString += '?';
 
     baseURLString += 'version=' + CTAB.version;
     baseURLString += '&cols=' + CTAB.cols.map(col => col.replace(/ /g, '%20'));  // replace spaces with %20
