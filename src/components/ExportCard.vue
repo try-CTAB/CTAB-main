@@ -28,12 +28,12 @@
                 </v-btn>
                 <!--not compatible with details-->
                 <v-btn
-                    v-if="saveOption"
+                    v-if="altOption"
                     text
                     color="rgba(0,0,0,0.5)"
                     @click="exportTable(true)"
                     >
-                    Download
+                    Copy
                 </v-btn>
             </v-card-actions>
 
@@ -78,7 +78,7 @@
                 </v-btn>
             </template>
         </v-snackbar>
-        <plainCTAB v-if="showHTML" :show-source="false" :CTAB="contributionTable"></plainCTAB>
+        <plainCTAB v-if="showHTML" :show-source="false" :CTAB="contributionTable" :OfficeMode="true"></plainCTAB>
     </div>
 </template>
 
@@ -96,7 +96,7 @@
         }),
         props: {
             details: { type: Boolean, default: false },
-            saveOption: { type: Boolean, default: false },
+            altOption: { type: Boolean, default: false },
             notReady: { type: Boolean, default: false},
             contributionTable: {type:Object},
             format: { type: String, default: 'raw'},
@@ -116,6 +116,9 @@
                     case 'LaTeX':
                         this.exportLaTeX( alternate );
                         break;
+                    case 'markdown':
+                        this.exportMarkdown();
+                        break;
                     case 'HTML':
                         this.exportHTML();
                         break;
@@ -131,12 +134,16 @@
                 console.log('Export complete.');
             },
 
-            exportRaw( saveFile ) { // export a raw format (tab separated representation) of contributionTable
-                console.log(exportPlainText(this.contributionTable))
-                const raw_format = exportPlainText(this.contributionTable);
+            exportRaw( copyOnly ) { // export a raw format (tab separated representation) of contributionTable
+                console.log(exportPlainText(this.contributionTable, false));
+                const raw_format = exportPlainText(this.contributionTable, false);
 
                 // download
-                if (saveFile) {
+                if ( copyOnly ) {
+                    this.copyStringToClipboard( raw_format );
+                    this.notify('Copied Raw Format to clipboard, you can now paste it somewhere')
+                }
+                else {
                     const blob = new Blob([raw_format], {type: 'text/txt'});
                     let elem = window.document.createElement('a');
                     elem.href = window.URL.createObjectURL(blob);
@@ -146,14 +153,10 @@
                     document.body.removeChild(elem);
                     this.notify('Downloaded raw format (.CTAB) text file')
                 }
-                else {
-                    this.copyStringToClipboard( raw_format );
-                    this.notify('Copied Raw Format to clipboard, you can now paste it somewhere')
-                }
             },
 
             exportLink() {
-                const link = exportEditorLink(this.contributionTable, false)
+                const link = exportEditorLink(this.contributionTable, false);
                 this.copyStringToClipboard(link);
 
                 this.notify('Copied editor link to clipboard. Share it with others!')
@@ -175,6 +178,14 @@
                 this.notify('Copied LaTeX to clipboard, you can now paste it somewhere')
             },
 
+            exportMarkdown() {
+                // the raw format is really close to markdown, so we simply adjust that
+                const markdown = exportPlainText(this.contributionTable, true);
+                console.log(markdown)
+                this.copyStringToClipboard(markdown);
+                this.notify('Copied Markdown table to clipboard, you can now paste it somewhere')
+            },
+
             exportHTML() {
                 let routeData = this.$router.resolve({name: 'html-CTAB' });
                 window.open(routeData.href+exportEditorLink(this.contributionTable, true), '_blank');
@@ -183,35 +194,37 @@
 
             exportOffice() {
                 this.showHTML = true
-                this.notify('Microsoft Office compatible table copied to clipboard. Paste in e.g. MS Word.')
+                this.notify('Microsoft Office compatible table copied to clipboard. Optional: manually rotate header in Office.')
 
                 this.$nextTick(() => {
-                    const el = document.querySelector('.CTAB');
-                    el.style.backgroundColor = 'transparent';
-                    let range;
-                    let selection;
+                    this.$nextTick(() => {  // it aint pretty but it works (2 next tick statements like this)
+                        const el = document.querySelector('.CTAB');
+                        el.style.backgroundColor = 'transparent';
+                        let range;
+                        let selection;
 
-                    if (document.body.createTextRange) {
+                        if (document.body.createTextRange) {
 
-                        range = document.body.createTextRange();
-                        range.moveToElement(el);
-                        range.select();
+                            range = document.body.createTextRange();
+                            range.moveToElement(el);
+                            range.select();
 
-                    } else if (window.getSelection) {
+                        } else if (window.getSelection) {
 
-                        selection = window.getSelection();
+                            selection = window.getSelection();
 
-                        range = document.createRange();
-                        range.selectNodeContents(el);
+                            range = document.createRange();
+                            range.selectNodeContents(el);
 
-                        selection.removeAllRanges();
-                        selection.addRange(range);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
 
-                    }
+                        }
 
-                    document.execCommand('copy');
-                    window.getSelection().removeAllRanges();
-                    this.showHTML = false
+                        document.execCommand('copy');
+                        window.getSelection().removeAllRanges();
+                        this.showHTML = false
+                    });
                 });
 
             },

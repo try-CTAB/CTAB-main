@@ -30,8 +30,6 @@
                     </div>
                 </div>
 
-
-                <button @click="testCopy">[WIP] Copy HTML rough</button>
                 <div>import options</div>
 
             </div>
@@ -45,8 +43,8 @@
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-down</v-icon></span> To navigate </div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">Q</span> to delete a row</div>
-                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">S</span> to delete a column</div>
+                <div class="shortcut-hint"> Press <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">Q</span> to delete a row, <span class="keyboard-key">Ctrl</span>+<span class="keyboard-key">S</span> to delete a column</div>
+                <div class="shortcut-hint"> Use <span class="keyboard-key">Shift</span>+<span class="keyboard-key">Right <v-icon color="var(--keyboard-white)">mdi-cursor-default-click</v-icon></span> on a label to delete a row/column</div>
                 <div class="shortcut-hint"> Use <span class="keyboard-key">Shift </span>+<span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-left</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-right</v-icon></span>,
                     <span class="keyboard-key"><v-icon color="var(--keyboard-white)">mdi-arrow-up</v-icon></span>,
@@ -72,6 +70,7 @@
                                     :ref="'col'+(index+1)"
                                     @focus="$event.target.select()"
                                     @click="editLabelClick(index+1,0)"
+                                    @contextmenu.prevent="removeClick(index+1, 0)"
                             ></v-text-field></div>
                         </td>
                     </tr>
@@ -85,6 +84,7 @@
                             :ref="'row'+(rowIndex+1)"
                             @focus="$event.target.select()"
                             @click="editLabelClick(0,rowIndex+1)"
+                            @contextmenu.prevent="removeClick(0, rowIndex+1)"
                             ></v-text-field></td> <!--v-on:keydown.enter="$event.target.blur()"-->
                         <td v-for=" (val, colIndex) in CTAB.contributions.map(contribution => contribution[rowIndex])"
                             :key="val.id"
@@ -100,9 +100,9 @@
         <div class="export-box">
             <div class="export-header">Export options</div>
             <div class="export-options">
-                <export-card format="raw" :contribution-table="CTAB" :save-option=true>
+                <export-card format="raw" :contribution-table="CTAB" :alt-option=true export-text-primary="download">
                     <template v-slot:header>Raw Format</template>
-                    <template v-slot:quick-summary>Export the {{name}} in the plaintext Raw Format. Markdown compatible.</template>
+                    <template v-slot:quick-summary>Export the {{name}} in the plaintext Raw Format.</template>
                 </export-card>
 
                 <export-card format="link" :contribution-table="CTAB">
@@ -116,6 +116,10 @@
                     <template v-slot:quick-summary>Export the {{name}} as a LaTeX table</template>
                     <template v-slot:details-text>The default export includes the <b>[xcolor, array, graphicx, hhline]</b> packages. If you want a plain LaTeX version, press 'alt export' </template>
                 </export-card>
+                <export-card format="markdown" :contribution-table="CTAB">
+                    <template v-slot:header>Markdown</template>
+                    <template v-slot:quick-summary>Export the {{name}} as a plain Markdown table</template>
+                </export-card>
 <!--                <export-card  :contribution-table="CTAB" format="pdf">-->
 <!--                    <template v-slot:header>PDF</template>-->
 <!--                    <template v-slot:quick-summary>Export the {{name}} as a PDF object</template>-->
@@ -126,7 +130,7 @@
                 </export-card>
                 <export-card :contribution-table="CTAB" format="Office">
                     <template v-slot:header>Word table</template>
-                    <template v-slot:quick-summary>Export as a table for Microsoft Word</template>
+                    <template v-slot:quick-summary>Export as a table for Microsoft Office</template>
                 </export-card>
 <!--                <div class="export-item-spacer">OR</div>-->
 <!--                <export-card :notReady=true :contribution-table="CTAB">-->
@@ -158,11 +162,6 @@
             focusedInput: null
         }),
         methods: {
-
-            testFocus(index) {
-                console.log('FOcusssing on' + index);
-            },
-
             editContents(col , row) {
                 this.cursor.row = row+1;
                 this.cursor.col = col+1;
@@ -237,6 +236,20 @@
                         this.$nextTick(() => {
                             this.drawCursor()
                         });
+                    }
+                }
+            },
+
+            // remove column or row depending through [SHIFT]+[CONTEXTMENU](i.e. right click)
+            removeClick(col, row) {
+                // set the cursor
+                this.editContents(col-1, row-1);
+                // now that the cursor is at the right location, remove the row or column
+                if (this.keysDown["Shift"]) {  // only if SHIFT is down
+                    if (col === 0) {
+                        this.removeRow();
+                    } else if (row === 0) {
+                        this.removeColumn();
                     }
                 }
             },
@@ -468,35 +481,6 @@
                 this.keysDown[event.key] = false;  // here is where we reset a key's state when it is released
             },
 
-            testCopy(){
-
-                const doc = document;
-                const text = doc.getElementById( 'editor-tbl' );
-                let range;
-                let selection;
-
-                if( doc.body.createTextRange ) {
-
-                    range = doc.body.createTextRange();
-                    range.moveToElement( text );
-                    range.select();
-
-                } else if ( window.getSelection ) {
-
-                    selection = window.getSelection();
-
-                    range = doc.createRange();
-                    range.selectNodeContents( text );
-
-                    selection.removeAllRanges();
-                    selection.addRange( range );
-
-                }
-
-                document.execCommand( 'copy' );
-                window.getSelection().removeAllRanges();
-            },
-
             parseQuery() {
                 // in the URL a CTAB can be specified following the ? symbol. see docs for more.
                 let parsedCTAB = parseEditorQuery( this.$route.query );
@@ -527,11 +511,11 @@
             // parse any possible query string
             this.parseQuery();
 
-            // make sure the CTAB has proper ctrl-c behaviour (the clipboard is formatted correctly)
-            // document.getElementById('editor-grid').addEventListener('copy', (e)=>{
-            //     e.preventDefault();
-            //     e.clipboardData.setData("Text", exportPlainText(this.CTAB) );
-            // });
+            //ake sure this CTAB view is not copyable
+            document.getElementById('editor-tbl').addEventListener('copy', (e)=>{
+                e.preventDefault();
+                e.clipboardData.setData("Text", 'Please copy the table from the HTML export, not the editor.' );
+            });
         }
     }
 </script>

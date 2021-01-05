@@ -1,10 +1,14 @@
-export function exportPlainText(contributionTable) {
+export function exportPlainText(contributionTable, forMarkDown) {
     console.log('[Export Utilities] generating plaintext representation of table');
     const longestCategory = contributionTable.rows.reduce((a,b) => {  return a.length > b.length ? a : b }).length;
 
     let rawFormat = '';
     rawFormat += '| ' + ' '.repeat(longestCategory) + ' | ' + contributionTable.cols.join(' | ') + ' |\n';
-    rawFormat += '| ' + '-'.repeat(longestCategory-1) + ': | :' + contributionTable.cols.map(col => { return '-'.repeat(col.length-2)}).join(': | :') + ': |\n';
+    if ( forMarkDown ) {  // add the | ---- | for markdown
+        rawFormat += '| ' + '-'.repeat(longestCategory - 1) + ': | :' + contributionTable.cols.map(col => {
+            return '-'.repeat(col.length - 2)
+        }).join(': | :') + ': |\n';
+    }
     for (const [i, row] of contributionTable.rows.entries()) {
         rawFormat += '| ' + row + ' '.repeat(longestCategory-row.length) + ' | ' + contributionTable.contributions.map((contribution, index) => {
             const colLength = contributionTable.cols[index].length;
@@ -18,7 +22,6 @@ export function exportPlainText(contributionTable) {
 
 // export in format pastable in LaTeX. Requires/includes xcolor package import
 export function exportRichLatex(CTAB) {
-    const LUT = ['FFFFFF','A0A0A0','303030','000000'];
     const numcols = CTAB.cols.length;
     console.log('[Export Utilities] generating rich LaTeX representation of table');
     let table = '';
@@ -31,17 +34,21 @@ export function exportRichLatex(CTAB) {
     table += '\\setlength{\\arrayrulewidth}{0.7mm} \n'; // appearance
     table += '\\renewcommand{\\arraystretch}{2.1} \n';  // bit of a hacky way to get boxes to be close to square
     table += '\\definecolor{version}{HTML}{DCDCDC}\n'  // add a light shade of gray for the version number
+    table += '\\definecolor{background}{HTML}{FFFFFF}\n'  // add a background color in absence of transparent text
     table += '\\definecolor{C1}{HTML}{FFFFFF}\n'  // add a color for level 1
     table += '\\definecolor{C2}{HTML}{A0A0A0}\n'  // add a color for level 3
     table += '\\definecolor{C3}{HTML}{303030}\n'  // add a color for level 3
     table += '\\begin{tabular}{ r | ' + 'm{0.5cm} | '.repeat(numcols) + '} \n';
     // the \multicolumn{1}{c}{} is a bit hacky, but it removes the vertical lines from the header
-    table += '\\multicolumn{1}{c}{\\textcolor{version}{' + 'CTAB V' + CTAB.version +  '}} & \\multicolumn{1}{c}{\\rot{' + CTAB.cols.join('}} & \\multicolumn{1}{c}{\\rot{') + '}} \\\\ \n';
+    // Add header
+    table += '\\multicolumn{1}{c}{\\textcolor{version}{' + 'CTAB V' + CTAB.version +  '\\textcolor{background}{|}}} & \\multicolumn{1}{c}{\\rot{' +
+        CTAB.cols.join('\\textcolor{background}{|}}} & \\multicolumn{1}{c}{\\rot{') + '\\textcolor{background}{|}}} \\\\ \n';
     table += '\\hhline{~|' + '-|'.repeat(numcols) +'} \n';
+    // add main table body
     for (const [i, row] of CTAB.rows.entries() ) {
-        table += row + ' & |' + CTAB.contributions.map(contribution => {
-            return '\\cellcolor[HTML]{' + LUT[contribution[i]] + '}' + '*'.repeat(contribution[i]);
-        }).join('| & ') + '| \\\\ \n'
+        table += '\\textcolor{background}{|}'+row + '\\textcolor{background}{|} & ' + CTAB.contributions.map(contribution => {
+            return '\\cellcolor{C' + (contribution[i]+1) + '}' + '\\textcolor{C'+(contribution[i]+1)+'}{' +'*'.repeat(contribution[i]) + '|}';
+        }).join(' & ') + ' \\\\ \n'
         table += '\\hhline{~|' + '-|'.repeat(numcols) +'} \n';
     }
     table += '\\end{tabular}';

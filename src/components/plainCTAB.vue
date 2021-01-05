@@ -3,19 +3,19 @@
     <div class="plainCTAB">
         <table class="CTAB" ref="mytable" >
         <tr>
-            <td class="CTAB-meta">CTAB V{{CTAB.version}}</td>
+            <td class="CTAB-meta"><span class="CTAB-hidden">|</span>CTAB V{{CTAB.version}}<span class="CTAB-hidden">|</span></td>
             <td v-for="col in CTAB.cols" :key="col.id" class="CTAB-column-anchor">
-                <div class="CTAB-column"> {{col}} </div>
+                <div class="CTAB-column"> {{col}}<span class="CTAB-hidden">|</span></div>
             </td>
         </tr>
         <tr v-for="(row, rowIndex) in CTAB.rows" :key="row.id">
-            <td class="CTAB-row"> {{row}} </td>
+            <td class="CTAB-row"> <span class="CTAB-hidden">|</span>{{row}}<span class="CTAB-hidden">|</span></td>
             <td v-for=" val in CTAB.contributions.map(contribution => contribution[rowIndex])"
                 :key="val.id"
                 class="CTAB-grid-el"
                 :class="'CTAB-contribution-level-'+val"
             >
-                {{'*'.repeat(val)}}
+                {{'*'.repeat(val)}}<span class="CTAB-hidden">|</span>
             </td>
         </tr>
     </table>
@@ -64,7 +64,7 @@
 
             .CTAB-row{
             white-space: nowrap;
-            padding-right: 0.6rem;
+            padding-right: 0.4rem;
             text-align: right;
             }
 
@@ -90,6 +90,10 @@
             background-color: 	#303030;
             color: #303030
             }
+
+            .CTAB-hidden {
+                color: transparent
+            }
         </component>
     </div>
 
@@ -106,6 +110,7 @@
                     contributions: [[0]],
                     version: ' undefined'}}},
             showSource: {type: Boolean, default: true},
+            OfficeMode: {type: Boolean, default: false},
         },
         data: () => ({
             loaded: false,
@@ -209,11 +214,22 @@
                 this.CTAB = parsedCTAB;
             }
 
+
+
             this.$nextTick(() => {
                 this.CTABel = document.querySelector('.CTAB');
                 this.CTABstyle = this.$refs.CTABstyle;
                 this.CTABscript = this.$refs.CTABscript;
                 this.loaded = true;
+
+                // if we are copying for Office, we need to change some styles (to cover for non-supported CSS styles)
+                if ( this.OfficeMode ) {
+                    document.querySelectorAll('.CTAB-hidden').forEach((separator) => {
+                        if (!separator.closest('.CTAB-grid-el')) {  // check if part of el with .CTAB-grid-el class
+                            separator.style.color = 'white'  // set to white in absence of a transparency mode in office
+                        }
+                    });
+                }
             });
         }
     }
