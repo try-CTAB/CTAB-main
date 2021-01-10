@@ -1,17 +1,18 @@
-export function exportPlainText(contributionTable, forMarkDown) {
+export function exportPlainText(CTAB, forMarkDown) {
     console.log('[Export Utilities] generating plaintext representation of table');
-    const longestCategory = contributionTable.rows.reduce((a,b) => {  return a.length > b.length ? a : b }).length;
+    const longestCategory = CTAB.rows.reduce((a,b) => {  return a.length > b.length ? a : b }).length;
 
     let rawFormat = '';
-    rawFormat += '| ' + ' '.repeat(longestCategory) + ' | ' + contributionTable.cols.join(' | ') + ' |\n';
+    rawFormat += '| ' + 'CTAB V'+CTAB.version +' '.repeat(longestCategory-CTAB.version.length-6) +
+        ' | ' + CTAB.cols.join(' | ') + ' |\n';
     if ( forMarkDown ) {  // add the | ---- | for markdown
-        rawFormat += '| ' + '-'.repeat(longestCategory - 1) + ': | :' + contributionTable.cols.map(col => {
+        rawFormat += '| ' + '-'.repeat(longestCategory - 1) + ': | :' + CTAB.cols.map(col => {
             return '-'.repeat(col.length - 2)
         }).join(': | :') + ': |\n';
     }
-    for (const [i, row] of contributionTable.rows.entries()) {
-        rawFormat += '| ' + row + ' '.repeat(longestCategory-row.length) + ' | ' + contributionTable.contributions.map((contribution, index) => {
-            const colLength = contributionTable.cols[index].length;
+    for (const [i, row] of CTAB.rows.entries()) {
+        rawFormat += '| ' + row + ' '.repeat(longestCategory-row.length) + ' | ' + CTAB.contributions.map((contribution, index) => {
+            const colLength = CTAB.cols[index].length;
             const contDegree = contribution[i]
             return ' '.repeat(Math.floor((colLength-contDegree)/2)) + '*'.repeat(contDegree) + ' '.repeat(Math.ceil((colLength-contDegree)/2));
         }).join(' | ') + ' |\n';

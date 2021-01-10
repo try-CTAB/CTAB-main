@@ -11,10 +11,10 @@
                 <div class="title-main">Contribution<br>Tables</div>
                 <div class="title-ext">
                     <div class="ext-link">
-                        <a href="/#/editor" target="_blank">
+						<router-link to="/editor">
                             <span class="ext-link-text">Try the table <span class="acc">editor</span></span>
                             <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
-                        </a>
+                        </router-link>
                     </div>
                     <div class="ext-link">
                         <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank">
@@ -37,6 +37,12 @@
         </section>
         <section class="mini-page m-flexible scroll-target">
             Flexible Standard
+            <div class="ext-link">
+                <router-link to="/check-CTAB">
+                    <span class="ext-link-text">Check your <span class="acc">CTAB string</span></span>
+                    <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
+                </router-link>
+            </div>
         </section>
         <footer class="final-navigation-link m-endlink scroll-target">
             <div class="end-nav-link">Back to top</div>
@@ -252,7 +258,7 @@
 
     .m-batteries {background-color: darkseagreen}
 
-    .m-flexible {background-color: #E3AFBC}
+    .m-flexible {background-color: var(--theme-soft-pink)}
 
     .ext-link {
         margin: 3rem 2rem;
@@ -267,6 +273,11 @@
         padding: 5px 2px 5px 0;
         font-weight: bold;
         transition: transform 0.4s, color 0.3s;
+    }
+
+    .m-flexible .ext-link-text {
+        background-color: var(--theme-soft-pink);
+        color: white;
     }
 
     .ext-link:hover .ext-link-text, .ext-link:hover .ext-link-icon i.v-icon{
