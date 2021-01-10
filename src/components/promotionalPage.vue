@@ -2,10 +2,11 @@
     <div>
 
         <section class="scroll-target" id="greeter">
-            <div class="temp-message">
-                <b>Contribution Tables promotional page.</b> <br>
-                This page is under development, in the meantime: <router-link to="/editor">go to editor</router-link>
-            </div>
+<!--            <div class="temp-message">-->
+<!--                <b>Contribution Tables promotional page.</b> <br>-->
+<!--                This page is under development, in the meantime: <router-link to="/editor">go to editor</router-link>-->
+<!--            </div>-->
+<!--            <button @click="buildRandomCTAB">new table</button>-->
             <div class="title-box">
                 <div class="title-main">Contribution<br>Tables</div>
                 <div class="title-ext">
@@ -23,7 +24,10 @@
                     </div>
                 </div>
             </div>
-            <div class="scroll-hint">scroll to get started</div>
+            <div class="demo-CTAB" >
+                <plainCTAB :show-source="false" :CTAB="demoCTAB"></plainCTAB>
+            </div>
+            <div class="scroll-hint">scroll to read more</div>
         </section>
         <section class="mini-page m-clearer scroll-target" >
             A clearer way to show contributions
@@ -39,11 +43,13 @@
             <div class="end-nav-link">Try the editor</div>
             <div class="end-nav-link">Read the specification</div>
         </footer>
+
     </div>
 
 </template>
 
 <script>
+    import plainCTAB from "./plainCTAB";
     import { gsap } from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
     import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
@@ -51,6 +57,20 @@
 
     export default {
         name: "promotionalPage",
+        components: {plainCTAB},
+        data: () => ({
+            demoCTAB: {cols: ['loading...'],
+                rows: ['loading...'],
+                contributions: [[0]],
+                version: '0.2'},
+            demoNames: ['E.X. Ample', 'R.E. Vision', 'E.X. Periment', 'F. Unding','M.A.N. Uscript', 'C. Ontrol',
+                'S. Ignificant', 'C. Orrespondence', 'P.O. Ster', 'B.R. Eakthrough','N. Ovel', 'E.V.I. Dently',
+                'T. Enure', 'S. Eminar', 'C.O.M. Petition', 'C. Ommunication','M.E. Thods','A.C. Knowledgements'],
+            demoCategories: ['Conceptualisation', 'Coffee breaks','Purification','X-ray diffraction','Scripting',
+                'Data Analysis','Funding','Outreach','Communication','Cryo EM','Fabrication', 'Tuning', 'Discussions',
+                'Experimental Design', 'Cell Culture', 'Transfection', 'Image processing', 'Synthesis', 'Training'],
+            demoLimits: {minrows: 3, mincols:4, maxrows: 7, maxcols: 12, maxLevel: 2, intermediateLevelChance: 0.3}
+        }),
         methods: {
             goToSection(section, anim) {
                 gsap.to(window, {
@@ -61,11 +81,77 @@
                 if(anim) {
                     anim.restart();
                 }
+            },
+
+            // function that builds a random CTAB using random number of categories and names, drawn from a list
+            // the contribution values are purely random
+            buildRandomCTAB() {
+                let newCTAB = {};
+                newCTAB.version = this.demoCTAB.version;
+                newCTAB.cols = this.getRandom( this.demoNames,
+                    Math.round(Math.random()*(this.demoLimits.maxcols-this.demoLimits.mincols)) + this.demoLimits.mincols);
+                newCTAB.rows = this.getRandom( this.demoCategories,
+                    Math.round(Math.random()*(this.demoLimits.maxrows-this.demoLimits.minrows)) + this.demoLimits.minrows );
+                let contributions = [];
+
+                // eslint-disable-next-line no-global-assign
+                for ( name of newCTAB.cols ) {
+                    let singleContribution = []
+                    // eslint-disable-next-line no-unused-vars
+                    for (const category of newCTAB.rows) {
+                        let level = Math.round(Math.random()*this.demoLimits.maxLevel );
+                        // make sure we dont have too many intermediate levels
+                        if (level > 0  && level<this.demoLimits.maxLevel)  {  // if intermediate
+                            if (Math.random() > this.demoLimits.intermediateLevelChance) {
+                                level = 0
+                            }
+                        }
+                        singleContribution.push( level )
+                    }
+                    // make sure there can be no empty columns (i.e. person contributed nothing)
+                    if (Math.max(...singleContribution) === 0){
+                        const rowIndex = Math.round( Math.random()*(newCTAB.rows.length-1) );
+                        singleContribution[rowIndex] = this.demoLimits.maxLevel;
+                    }
+                    contributions.push(singleContribution)
+                }
+                // do some checks on the table (ensure a category always has a dominant (maxlevel) contribution
+                for (let i=0; i< newCTAB.rows.length; i++) {
+                    let category = contributions.map(contribution => contribution[i]);
+                    if (Math.max(...category) < this.demoLimits.maxLevel) {
+                        const rowIndex = Math.round( Math.random()*(newCTAB.cols.length-1) );
+                        contributions[rowIndex][i] = this.demoLimits.maxLevel;
+                    }
+                }
+
+                newCTAB.contributions = contributions;
+                this.demoCTAB = newCTAB;
+            },
+
+            // get n random items from array arr and return new array
+            getRandom(arr, n) {
+                let result = new Array(n),
+                    len = arr.length,
+                    taken = new Array(len);
+                if (n > len)
+                    throw new RangeError("getRandom: more elements taken than available");
+                while (n--) {
+                    const x = Math.floor(Math.random() * len);
+                    result[n] = arr[x in taken ? taken[x] : x];
+                    taken[x] = --len in taken ? taken[len] : len;
+                }
+                return result;
             }
         },
         mounted() {
 
             const sections = document.querySelectorAll(".scroll-target");
+
+
+            this.buildRandomCTAB();
+            window.setInterval(() =>{
+                this.buildRandomCTAB();
+            }, 700);
 
 
             sections.forEach(section => {
@@ -124,6 +210,14 @@
     .title-ext {
         display: flex;
         justify-content: start;
+    }
+
+    .demo-CTAB {
+        position: absolute;
+        margin-right: 10vw;
+        right: 0;
+        top: 65%;
+        transform: translateY(-50%);
     }
 
     .scroll-hint {
