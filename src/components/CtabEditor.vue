@@ -132,6 +132,10 @@
                     <template v-slot:header>Word table</template>
                     <template v-slot:quick-summary>Export as a table for Microsoft Office</template>
                 </export-card>
+                <export-card :contribution-table="CTAB" format="svg">
+                    <template v-slot:header>SVG</template>
+                    <template v-slot:quick-summary>Export as a svg object</template>
+                </export-card>
 <!--                <div class="export-item-spacer">OR</div>-->
 <!--                <export-card :notReady=true :contribution-table="CTAB">-->
 <!--                    <template v-slot:header>PNG</template>-->

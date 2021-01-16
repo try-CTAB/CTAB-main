@@ -2,6 +2,7 @@
 
     <div class="plainCTAB">
         <table class="CTAB" ref="mytable" >
+
         <tr>
             <td class="CTAB-meta"><span class="CTAB-hidden">|</span>CTAB V{{CTAB.version}}<span class="CTAB-hidden">|</span></td>
             <td v-for="col in CTAB.cols" :key="col.id" class="CTAB-column-anchor">
@@ -19,7 +20,6 @@
             </td>
         </tr>
     </table>
-
         <div class="CTAB-source-view" v-if="loaded && showSource">
             <div class="CTAB-source-view-title">Source view (for changing styles or adding to your own HTML page)</div>
             {{ formatHTML(CTABel) }}

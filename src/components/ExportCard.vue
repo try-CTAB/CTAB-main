@@ -85,6 +85,7 @@
 <script>
     import plainCTAB from "./plainCTAB";
     import { exportPlainText, exportRichLatex, exportBasicLatex, exportEditorLink } from "../export.js"
+
     export default {
         name: "ExportCard",
         components: {plainCTAB},
@@ -92,7 +93,8 @@
             reveal: false,
             snackbar: false,
             snackText: '',
-            showHTML: false
+            showHTML: false,
+            showSVG: false,
         }),
         props: {
             details: { type: Boolean, default: false },
@@ -127,6 +129,9 @@
                         break;
                     case 'pdf':
                         this.exportPDF();
+                        break;
+                    case 'svg':
+                        this.exportSVG();
                         break;
                     default:
                         throw 'Error exporting table: unrecognised format'
@@ -226,7 +231,12 @@
                         this.showHTML = false
                     });
                 });
+            },
 
+            exportSVG() {
+                let routeData = this.$router.resolve({name: 'svg-CTAB' });
+                window.open(routeData.href+exportEditorLink(this.contributionTable, true), '_blank');
+                this.notify('Opening svg representation in new tab...')
             },
 
             exportPDF () {
