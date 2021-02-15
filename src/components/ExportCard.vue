@@ -44,7 +44,7 @@
                         style="height: 100%;"
                 >
                     <v-card-text class="pb-0 details-text">
-                        <slot name="details-text">You can find more details <a href="https://nemoandrea.github.io/better-contributions-spec/export-formats/">in the docs</a></slot>
+                        <slot name="details-text">You can find more details <a href="https://try-ctab.github.io/spec/export-formats/">in the docs</a></slot>
                     </v-card-text>
                     <v-card-actions class="pt-0 export-card-buttons">
                         <v-btn

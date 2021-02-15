@@ -23,7 +23,7 @@
                         </router-link>
                     </div>
                     <div class="ext-link">
-                        <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank">
+                        <a href="https://try-ctab.github.io/spec" target="_blank">
                         <span class="ext-link-text">Read the <span class="acc">how</span></span>
                         <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
                         </a>

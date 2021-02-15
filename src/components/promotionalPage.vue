@@ -18,8 +18,8 @@
                         </router-link>
                     </div>
                     <div class="ext-link">
-                        <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank">
-                            <span class="ext-link-text">Read the <span class="acc">how</span></span>
+                        <a href="https://try-ctab.github.io/spec" target="_blank">
+                            <span class="ext-link-text">Read the <span class="acc">spec</span></span>
                             <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
                         </a>
                     </div>
@@ -88,7 +88,7 @@
         <section class="mini-page m-flexible scroll-target">
             <div class="page-flexbox">
                 <div style="display: flex; flex-direction: column;justify-content: center;align-items: center; height: 100%">
-                    <a href="https://nemoandrea.github.io/better-contributions-spec/" target="_blank" class="format-link">
+                    <a href="https://try-ctab.github.io/spec" target="_blank" class="format-link">
                         <v-icon>mdi-text-box-search-outline</v-icon>
                         <div>Read the draft specification</div>
                     </a>
@@ -118,7 +118,7 @@
 
         </section>
         <footer class="final-navigation-link m-endlink scroll-target">
-            <div class="footer-subtle">Maintained by Nemo Andrea</div>
+            <div class="footer-subtle">Maintained by Nemo Andrea <a src="https://github.com/try-CTAB" target="_blank">on GitHub</a></div>
             <div class="end-nav-link"><v-btn
                     class="ma-2"
                     outlined

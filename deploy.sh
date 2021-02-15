@@ -16,6 +16,6 @@ git add -A
 git commit -m 'deploy'
 
 echo '>>> Pushing to remote...'
-git remote add origin https://github.com/nemoandrea/better-contributions.git
+git remote add origin https://github.com/try-CTAB/try-CTAB.github.io.git
 git push -u origin master --force
 cd - 
