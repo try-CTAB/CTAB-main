@@ -286,73 +286,77 @@
 
             // move row or column up or down (swap position with col above, below)
             rearrangeCTAB(direction) {
-                if (direction === 1 && this.cursor.col < (this.CTAB.cols.length)  && this.cursor.col !==0 ) {
-                    // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
-                    const currentIndex = this.cursor.col-1;
-                    const swapIndex = this.cursor.col;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.CTAB.cols[swapIndex];
-                    const current = this.CTAB.cols[currentIndex];
-                    this.CTAB.cols.splice(swapIndex, 1, current);
-                    this.CTAB.cols.splice(currentIndex, 1, target);
-                    // make sure we also rearrange CTAB.contributions
-                    const target_contributions = this.CTAB.contributions[swapIndex];
-                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
-                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
-                } else if (direction === 2 && this.cursor.col > 1) {
-                    // if move left (swap with col left) - we check there is a column to the left
-                    const currentIndex = this.cursor.col-1;
-                    const swapIndex = this.cursor.col-2;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.CTAB.cols[swapIndex];
-                    const current = this.CTAB.cols[currentIndex];
-                    this.CTAB.cols.splice(swapIndex, 1, current);
-                    this.CTAB.cols.splice(currentIndex, 1, target);
-                    // make sure we also rearrange CTAB.contributions
-                    const target_contributions = this.CTAB.contributions[swapIndex];
-                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
-                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
-                } else if (direction === 3 && this.cursor.row > 1) {
-                    // if move up (swap with row above) - we check there is a row above
-                    const currentIndex = this.cursor.row-1;
-                    const swapIndex = this.cursor.row-2;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.CTAB.rows[swapIndex];
-                    const current = this.CTAB.rows[currentIndex];
-                    this.CTAB.rows.splice(swapIndex, 1, current);
-                    this.CTAB.rows.splice(currentIndex, 1, target);
-                    // make sure we also rearrange CTAB.contributions
-                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
-                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
-                } else if (direction === 4 && this.cursor.row < (this.CTAB.rows.length) && this.cursor.row !==0 ) {
-                    // if move down (swap with row below) - we check there is a row below (and we are not in labels)
-                    const currentIndex = this.cursor.row-1;
-                    const swapIndex = this.cursor.row;
-                    // swap the row labels (triggers a table redraw)
-                    const target = this.CTAB.rows[swapIndex];
-                    const current = this.CTAB.rows[currentIndex];
-                    this.CTAB.rows.splice(swapIndex, 1, current);
-                    this.CTAB.rows.splice(currentIndex, 1, target);
-                    // make sure we also rearrange CTAB.contributions
-                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
-                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                if (this.focusedInput === null) {  // we only allow swapping of rows/columns if a user is NOT currently
+                                                   // editing a label (i.e. typing)
+                    if (direction === 1 && this.cursor.col < (this.CTAB.cols.length) && this.cursor.col !== 0) {
+                        // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
+                        const currentIndex = this.cursor.col - 1;
+                        const swapIndex = this.cursor.col;
+                        // swap the row labels (triggers a table redraw)
+                        const target = this.CTAB.cols[swapIndex];
+                        const current = this.CTAB.cols[currentIndex];
+                        this.CTAB.cols.splice(swapIndex, 1, current);
+                        this.CTAB.cols.splice(currentIndex, 1, target);
+                        // make sure we also rearrange CTAB.contributions
+                        const target_contributions = this.CTAB.contributions[swapIndex];
+                        this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                        this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                    } else if (direction === 2 && this.cursor.col > 1) {
+                        // if move left (swap with col left) - we check there is a column to the left
+                        const currentIndex = this.cursor.col - 1;
+                        const swapIndex = this.cursor.col - 2;
+                        // swap the row labels (triggers a table redraw)
+                        const target = this.CTAB.cols[swapIndex];
+                        const current = this.CTAB.cols[currentIndex];
+                        this.CTAB.cols.splice(swapIndex, 1, current);
+                        this.CTAB.cols.splice(currentIndex, 1, target);
+                        // make sure we also rearrange CTAB.contributions
+                        const target_contributions = this.CTAB.contributions[swapIndex];
+                        this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                        this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                    } else if (direction === 3 && this.cursor.row > 1) {
+                        // if move up (swap with row above) - we check there is a row above
+                        const currentIndex = this.cursor.row - 1;
+                        const swapIndex = this.cursor.row - 2;
+                        // swap the row labels (triggers a table redraw)
+                        const target = this.CTAB.rows[swapIndex];
+                        const current = this.CTAB.rows[currentIndex];
+                        this.CTAB.rows.splice(swapIndex, 1, current);
+                        this.CTAB.rows.splice(currentIndex, 1, target);
+                        // make sure we also rearrange CTAB.contributions
+                        const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                        this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                        this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                    } else if (direction === 4 && this.cursor.row < (this.CTAB.rows.length) && this.cursor.row !== 0) {
+                        // if move down (swap with row below) - we check there is a row below (and we are not in labels)
+                        const currentIndex = this.cursor.row - 1;
+                        const swapIndex = this.cursor.row;
+                        // swap the row labels (triggers a table redraw)
+                        const target = this.CTAB.rows[swapIndex];
+                        const current = this.CTAB.rows[currentIndex];
+                        this.CTAB.rows.splice(swapIndex, 1, current);
+                        this.CTAB.rows.splice(currentIndex, 1, target);
+                        // make sure we also rearrange CTAB.contributions
+                        const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                        this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                        this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                    }
+                    this.$nextTick(() => {
+                        this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
+                    });
                 }
-                this.$nextTick(() => {
-                    this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
-                });
             },
 
             // attempt to move the 'cursor'
             moveCurrentSquare(directionVal) {
                 //console.log('moving cursor' + directionVal)
-                // we do not allow the cursor to be moved (directionally) when we are currently editing an input
-                if (this.focusedInput === null) {
+                if (this.focusedInput === null) {  // we only allow cursor movement if a user is NOT currently
+                                                   // editing a label (i.e. typing)
                     if (directionVal === 1) { // right
                         if (this.cursor.col < this.CTAB.cols.length) {
                             this.cursor.col++;
-                        }
+                            console.log('CURSOR INCREASED (RIGHT)')
+                        } else { console.log('FAILED TO MOVE RIGHT (ALREADY AT RIGHTMOST POINT)')}
                     } else if (directionVal === 2) {// left
                         if (this.cursor.row === 0 && this.cursor.col > 1) { // we are in header row, so we can only go to 1
                             this.cursor.col--;
@@ -370,8 +374,8 @@
                             this.cursor.row++;
                         }
                     }
+                    this.drawCursor()
                 }
-                this.drawCursor()
             },
 
             drawCursor() {
