@@ -14,25 +14,119 @@
                     Table </span> today
                 </div>
             </div>
-            <div class="import-box">
+                <div class="templates-box">
+                    <div>
+                    <div class="template-header"><v-icon>mdi-table-plus</v-icon>Select Template </div>
+                    <div class="template-options">
+                        <v-list rounded>
+                            <v-list-item-group
+                                    color="var(--theme-reddish)"
+                            >
+                                <v-list-item
+                                    v-for="(item, i) in Object.keys(templates)"
+                                    :key="i"
+                                    @click="loadTemplate(templates[item])"
+                            >
+                                <v-list-item-content>
+                                    <v-list-item-title v-text="item"></v-list-item-title>
+                                </v-list-item-content>
+                                <v-tooltip right max-width="25em">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon class="template-info"
+                                                v-bind="attrs"
+                                                v-on="on"> mdi-information-outline </v-icon>
+                                    </template>
+                                    <span v-html="templates[item].info"></span>
+                                </v-tooltip>
+                            </v-list-item>
+                                <v-list-item
+                                        @click="templateDialog = true"
+                                >
+                                    <v-list-item-content>
+                                        <v-list-item-title>Config String</v-list-item-title>
+                                    </v-list-item-content>
+                                    <v-tooltip right max-width="25em">
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-icon class="template-info"
+                                                    v-bind="attrs"
+                                                    v-on="on"> mdi-upload </v-icon>
+                                        </template>
+                                        <span>Upload a publisher specific format string. Found on publisher pages.</span>
+                                    </v-tooltip>
+                                    <v-dialog
+                                            v-model="templateDialog"
+                                            max-width="900"
+                                    >
+                                        <v-card>
+                                            <v-card-title class="headline">
+                                                Paste CTAB Config String
+                                            </v-card-title>
+
+                                            <v-card-text style="font-style: italic" >
+                                                Publishers or other users may have a suggested group of categories to
+                                                include in your CTAB. They can provide these as a CTAB Config String.
+                                                Simply copy and paste it in the box below.
+                                                For more information on the technical side, see
+                                                <a style="color: var(--theme-reddish);" href="https://try-ctab.github.io/spec/for-journals/#journal-specific-config-format" target="_blank">
+                                                    the CTAB spec</a>
+                                            </v-card-text>
+                                            <v-card-text>
+                                                <v-textarea
+                                                        v-model="configString.config"
+                                                        filled
+                                                        clearable
+                                                        label="Paste CTAB config string here"
+                                                        color="var(--theme-reddish)"
+                                                        auto-grow
+                                                        @change="checkConfigString"
+                                                ></v-textarea>
+                                                <v-alert v-if="configString.error"
+                                                        dense
+                                                        outlined
+                                                        type="error"
+                                                >{{configString.error}}
+                                                </v-alert>
+                                            </v-card-text>
+
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                        color="gray"
+                                                        text
+                                                        @click="templateDialog = false"
+                                                >
+                                                    Close
+                                                </v-btn>
+                                                <v-btn v-if="configString.valid"
+                                                        color="var(--theme-reddish)"
+                                                        text
+                                                        @click="loadTemplateString"
+                                                >
+                                                    Use as Template
+                                                </v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
+                                </v-list-item>
+                            </v-list-item-group>
+                        </v-list>
+                    </div>
+                    </div>
+                </div>
                 <div class="mini-header">
                     <div class="ext-link">
                         <router-link to="/">
-                        <span class="ext-link-text">Read the <span class="acc">why</span></span>
-                        <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
+                            <span class="ext-link-text">Read the <span class="acc">why</span></span>
+                            <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
                         </router-link>
                     </div>
                     <div class="ext-link">
                         <a href="https://try-ctab.github.io/spec" target="_blank">
-                        <span class="ext-link-text">Read the <span class="acc">how</span></span>
-                        <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
+                            <span class="ext-link-text">Read the <span class="acc">spec</span></span>
+                            <span class="ext-link-icon"><v-icon>mdi-arrow-top-right</v-icon><span class="ext-link-icon-circle"></span></span>
                         </a>
                     </div>
                 </div>
-
-<!--                <div>import options</div>-->
-
-            </div>
         </div>
         <div class="editor-flexbox">
             <div class="shortcut-box">
@@ -149,7 +243,9 @@
 
 <script>
     import ExportCard from "./ExportCard";
-    import { parseEditorQuery, isValidCTAB } from "../parser.js"
+    import { parseEditorQuery, isValidCTAB, parseCTABconfig } from "../parser.js"
+    // eslint-disable-next-line no-unused-vars
+    import {templates} from "../editor_templates"
     export default {
         name: "CTAB-editor",
         components: {ExportCard},
@@ -163,7 +259,10 @@
             cursor: {row:2, col:2},
             metadata: {lowerDegreeLimit:0, upperDegreeLimit:2},
             name: 'contribution table',
-            focusedInput: null
+            focusedInput: null,
+            templates: {},
+            templateDialog: false,
+            configString: {config: '', valid: false, error: null}
         }),
         methods: {
             editContents(col , row) {
@@ -286,77 +385,73 @@
 
             // move row or column up or down (swap position with col above, below)
             rearrangeCTAB(direction) {
-                if (this.focusedInput === null) {  // we only allow swapping of rows/columns if a user is NOT currently
-                                                   // editing a label (i.e. typing)
-                    if (direction === 1 && this.cursor.col < (this.CTAB.cols.length) && this.cursor.col !== 0) {
-                        // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
-                        const currentIndex = this.cursor.col - 1;
-                        const swapIndex = this.cursor.col;
-                        // swap the row labels (triggers a table redraw)
-                        const target = this.CTAB.cols[swapIndex];
-                        const current = this.CTAB.cols[currentIndex];
-                        this.CTAB.cols.splice(swapIndex, 1, current);
-                        this.CTAB.cols.splice(currentIndex, 1, target);
-                        // make sure we also rearrange CTAB.contributions
-                        const target_contributions = this.CTAB.contributions[swapIndex];
-                        this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
-                        this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
-                    } else if (direction === 2 && this.cursor.col > 1) {
-                        // if move left (swap with col left) - we check there is a column to the left
-                        const currentIndex = this.cursor.col - 1;
-                        const swapIndex = this.cursor.col - 2;
-                        // swap the row labels (triggers a table redraw)
-                        const target = this.CTAB.cols[swapIndex];
-                        const current = this.CTAB.cols[currentIndex];
-                        this.CTAB.cols.splice(swapIndex, 1, current);
-                        this.CTAB.cols.splice(currentIndex, 1, target);
-                        // make sure we also rearrange CTAB.contributions
-                        const target_contributions = this.CTAB.contributions[swapIndex];
-                        this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
-                        this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
-                    } else if (direction === 3 && this.cursor.row > 1) {
-                        // if move up (swap with row above) - we check there is a row above
-                        const currentIndex = this.cursor.row - 1;
-                        const swapIndex = this.cursor.row - 2;
-                        // swap the row labels (triggers a table redraw)
-                        const target = this.CTAB.rows[swapIndex];
-                        const current = this.CTAB.rows[currentIndex];
-                        this.CTAB.rows.splice(swapIndex, 1, current);
-                        this.CTAB.rows.splice(currentIndex, 1, target);
-                        // make sure we also rearrange CTAB.contributions
-                        const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
-                        this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                        this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
-                    } else if (direction === 4 && this.cursor.row < (this.CTAB.rows.length) && this.cursor.row !== 0) {
-                        // if move down (swap with row below) - we check there is a row below (and we are not in labels)
-                        const currentIndex = this.cursor.row - 1;
-                        const swapIndex = this.cursor.row;
-                        // swap the row labels (triggers a table redraw)
-                        const target = this.CTAB.rows[swapIndex];
-                        const current = this.CTAB.rows[currentIndex];
-                        this.CTAB.rows.splice(swapIndex, 1, current);
-                        this.CTAB.rows.splice(currentIndex, 1, target);
-                        // make sure we also rearrange CTAB.contributions
-                        const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
-                        this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
-                        this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
-                    }
-                    this.$nextTick(() => {
-                        this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
-                    });
+                if (direction === 1 && this.cursor.col < (this.CTAB.cols.length)  && this.cursor.col !==0 ) {
+                    // if move right (swap with col right) - we check there is a col to right (and we are not in labels)
+                    const currentIndex = this.cursor.col-1;
+                    const swapIndex = this.cursor.col;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.cols[swapIndex];
+                    const current = this.CTAB.cols[currentIndex];
+                    this.CTAB.cols.splice(swapIndex, 1, current);
+                    this.CTAB.cols.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_contributions = this.CTAB.contributions[swapIndex];
+                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                } else if (direction === 2 && this.cursor.col > 1) {
+                    // if move left (swap with col left) - we check there is a column to the left
+                    const currentIndex = this.cursor.col-1;
+                    const swapIndex = this.cursor.col-2;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.cols[swapIndex];
+                    const current = this.CTAB.cols[currentIndex];
+                    this.CTAB.cols.splice(swapIndex, 1, current);
+                    this.CTAB.cols.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_contributions = this.CTAB.contributions[swapIndex];
+                    this.CTAB.contributions.splice(swapIndex, 1, this.CTAB.contributions[currentIndex]);
+                    this.CTAB.contributions.splice(currentIndex, 1, target_contributions)
+                } else if (direction === 3 && this.cursor.row > 1) {
+                    // if move up (swap with row above) - we check there is a row above
+                    const currentIndex = this.cursor.row-1;
+                    const swapIndex = this.cursor.row-2;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.rows[swapIndex];
+                    const current = this.CTAB.rows[currentIndex];
+                    this.CTAB.rows.splice(swapIndex, 1, current);
+                    this.CTAB.rows.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
+                } else if (direction === 4 && this.cursor.row < (this.CTAB.rows.length) && this.cursor.row !==0 ) {
+                    // if move down (swap with row below) - we check there is a row below (and we are not in labels)
+                    const currentIndex = this.cursor.row-1;
+                    const swapIndex = this.cursor.row;
+                    // swap the row labels (triggers a table redraw)
+                    const target = this.CTAB.rows[swapIndex];
+                    const current = this.CTAB.rows[currentIndex];
+                    this.CTAB.rows.splice(swapIndex, 1, current);
+                    this.CTAB.rows.splice(currentIndex, 1, target);
+                    // make sure we also rearrange CTAB.contributions
+                    const target_category = this.CTAB.contributions.map(x => x[swapIndex]);
+                    this.CTAB.contributions.forEach(contribution => contribution[swapIndex] = contribution[currentIndex]);
+                    this.CTAB.contributions.forEach((contribution, index) => contribution[currentIndex] = target_category[index]);
                 }
+                this.$nextTick(() => {
+                    this.moveCurrentSquare(direction);  // also move the cursor so we can easily move a row or col multiple spots
+                });
             },
 
             // attempt to move the 'cursor'
             moveCurrentSquare(directionVal) {
                 //console.log('moving cursor' + directionVal)
-                if (this.focusedInput === null) {  // we only allow cursor movement if a user is NOT currently
-                                                   // editing a label (i.e. typing)
+                // we do not allow the cursor to be moved (directionally) when we are currently editing an input
+                if (this.focusedInput === null) {
                     if (directionVal === 1) { // right
                         if (this.cursor.col < this.CTAB.cols.length) {
                             this.cursor.col++;
-                            console.log('CURSOR INCREASED (RIGHT)')
-                        } else { console.log('FAILED TO MOVE RIGHT (ALREADY AT RIGHTMOST POINT)')}
+                        }
                     } else if (directionVal === 2) {// left
                         if (this.cursor.row === 0 && this.cursor.col > 1) { // we are in header row, so we can only go to 1
                             this.cursor.col--;
@@ -374,8 +469,8 @@
                             this.cursor.row++;
                         }
                     }
-                    this.drawCursor()
                 }
+                this.drawCursor()
             },
 
             drawCursor() {
@@ -427,6 +522,39 @@
                 this.cursor = {row:1, col:1}; // reset cursor
                 this.CTAB = {version: this.CTAB.version, cols:['undefined'], rows:['empty'], contributions: [[0]]}
                 this.drawCursor()
+            },
+
+            // load a specified template
+            loadTemplate(template) {
+                console.log(`Loading template with categories: ${template.categories}`)
+                // move cursor to 0,0
+                this.cursor = {row:1, col: 1};
+                this.drawCursor();
+                // set the cateories (note that we leave the rows (authors/publications) unchanged
+                this.CTAB.rows = template.categories;
+                // reset the contributions (i.e. the current contribution levels) and set to proper size
+                let newContributions = [];
+                for (let i=0; i<this.CTAB.cols.length; i++) {
+                    newContributions.push(new Array(this.CTAB.rows.length).fill( this.metadata.lowerDegreeLimit ))
+                }
+                this.CTAB.contributions = newContributions;
+            },
+
+            // load template from user-provided string (i.e. CTAB config)
+            loadTemplateString(){
+                this.loadTemplate(JSON.parse(this.configString.config));
+                this.templateDialog = false;
+            },
+
+            checkConfigString() {
+                let [valid, msg] = parseCTABconfig(this.configString.config)
+                if (valid) {
+                    this.configString.valid = true;
+                    this.configString.error = '';
+                } else {
+                    this.configString.valid = false;
+                    this.configString.error = msg
+                }
             },
 
             handleKeyPress(event) {
@@ -509,6 +637,9 @@
             window.addEventListener("keydown", this.handleKeyPress);
             window.addEventListener("keyup", this.handleKeyUp);
 
+            // Load templates
+            this.templates = templates; // from editor_templates.js
+
             // manage the variables in localStroage
             // we store meta variables in localstorage, so they can manually be overriden by people that feel like it
             localStorage.getItem("meta_lowerDegreeLimit") !== null ? this.metadata.lowerDegreeLimit = Number(localStorage.getItem("meta_lowerDegreeLimit")) :
@@ -541,6 +672,7 @@
     .top-flexbox {
         display: flex;
         flex-wrap: wrap;
+        justify-content: space-between;
     }
 
     .title-box {
@@ -560,8 +692,38 @@
         color: var(--theme-reddish)
     }
 
-    .import-box {
+    .meta-box {
         flex-grow: 1;
+        display: flex;
+        flex-wrap: wrap-reverse;
+        justify-content: space-between;
+    }
+
+    .templates-box {
+        margin: 1rem 3rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .template-header {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--theme-reddish);
+    }
+
+    .template-header i {
+        margin-right: 0.5ch;
+        font-size: 1.5rem;
+        color: var(--theme-reddish);
+    }
+
+    .templates-box .theme--light.v-list {
+     background-color: transparent;
+    }
+
+    .template-info {
+        color: rgba(0,0,0,0.15);
+        margin-left: 0.5ch;
     }
 
     .mini-header {

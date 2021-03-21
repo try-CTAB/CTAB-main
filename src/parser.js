@@ -88,3 +88,36 @@ export function isValidCTAB(CTAB) {
 
     return isValid
 }
+
+// checks if a CTAB config string is valid
+export function parseCTABconfig( configString ) {
+    if (configString === null) { return [false, '']}  // if the string is empty, we return no message
+    //console.log('parsing config string: ' + configString);
+    try {
+        let config = JSON.parse(configString);
+        // first check if all the keys are there
+        const requiredKeys = ['configVersion', 'id', 'categories'];
+        for (const key of requiredKeys) {
+            if (!(Object.keys(config).includes(key))) {
+                console.log('missing key: ' + key)
+                return [false, 'Config JSON missing required key: ' + key]
+            }
+        }
+        // check if the categories are valid
+        if ( !Array.isArray(config.categories) ) { return [false, 'Categories are not formatted as array. Example of' +
+        ' valid is -> categories: ["experiments","writing"]']}
+        if ( !(config.categories.length > 1))  { return [false,'Only one item in "categories" array.' +
+        ' At least 2 are required.']}
+
+        // All failure checks passed; config is (probably) valid
+        return [true, null]
+    }
+    catch (e) {
+        if (e instanceof SyntaxError) {
+            return [false, 'Invalid JSON, did you paste the whole config string?']
+        } else {
+            return [false, e]
+        }
+    }
+
+}
